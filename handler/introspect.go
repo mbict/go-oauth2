@@ -10,9 +10,9 @@ type IntrospectHandler struct {
 	revokeTokenFlow *flow.IntrospectFlow
 }
 
-func NewIntrospectHandler() oauth2.Handler {
+func NewIntrospectHandler(clients oauth2.ClientStorage, tokens oauth2.TokenStorage) oauth2.Handler {
 	return &IntrospectHandler{
-		revokeTokenFlow: flow.NewIntrospectHandler(),
+		revokeTokenFlow: flow.NewIntrospectHandler(clients, tokens, tokens),
 	}
 
 }

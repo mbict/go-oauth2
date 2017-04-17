@@ -11,10 +11,10 @@ type AuthorizeHandler struct {
 	implicitAuthorizeHandler *flow.ImplicitAuthorizeFlow
 }
 
-func NewAuthorizeHandler() oauth2.Handler {
+func NewAuthorizeHandler(clients oauth2.ClientStorage, tokens oauth2.TokenStorage) oauth2.Handler {
 	return &AuthorizeHandler{
-		authorizeCodeHandler:     flow.NewAuthorizeCodeHandler(),
-		implicitAuthorizeHandler: flow.NewImplicitAuthorizeHandler(),
+		authorizeCodeHandler:     flow.NewAuthorizeCodeHandler(clients, tokens),
+		implicitAuthorizeHandler: flow.NewImplicitAuthorizeHandler(clients, tokens),
 	}
 }
 

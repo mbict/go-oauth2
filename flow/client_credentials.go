@@ -62,6 +62,9 @@ func (f *ClientCredentialsFlow) Handle(ctx context.Context, req *ClientCredentia
 	return resp, nil
 }
 
-func NewClientCredentialsHandler() *ClientCredentialsFlow {
-	return &ClientCredentialsFlow{}
+func NewClientCredentialsHandler(clients oauth2.ClientStorage, accessTokens oauth2.AccessTokenStorage) *ClientCredentialsFlow {
+	return &ClientCredentialsFlow{
+		clients:      clients,
+		accessTokens: accessTokens,
+	}
 }

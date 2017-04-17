@@ -77,6 +77,10 @@ func (f *RefreshFlow) Handle(ctx context.Context, req *RefreshRequest) (oauth2.R
 	return resp, nil
 }
 
-func NewRefreshHandler() *RefreshFlow {
-	return &RefreshFlow{}
+func NewRefreshHandler(clients oauth2.ClientStorage, refreshTokens oauth2.RefreshTokenStorage, accessTokens oauth2.AccessTokenStorage) *RefreshFlow {
+	return &RefreshFlow{
+		clients:       clients,
+		refreshTokens: refreshTokens,
+		accessTokens:  accessTokens,
+	}
 }

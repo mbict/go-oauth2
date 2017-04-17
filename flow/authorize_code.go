@@ -97,6 +97,9 @@ func (f *AuthorizeCodeFlow) Handle(ctx context.Context, req *AuthorizeCodeReques
 	return resp, nil
 }
 
-func NewAuthorizeCodeHandler() *AuthorizeCodeFlow {
-	return &AuthorizeCodeFlow{}
+func NewAuthorizeCodeHandler(clients oauth2.ClientStorage, codes oauth2.AuthorizeCodeStorage) *AuthorizeCodeFlow {
+	return &AuthorizeCodeFlow{
+		clients: clients,
+		codes:   codes,
+	}
 }

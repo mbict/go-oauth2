@@ -78,9 +78,10 @@ func (r *AccessTokenResponse) toMap() map[string]interface{} {
 }
 
 type AccessTokenFlow struct {
-	clients      oauth2.ClientStorage
-	codes        oauth2.AuthorizeCodeStorage
-	accessTokens oauth2.AccessTokenStorage
+	clients       oauth2.ClientStorage
+	codes         oauth2.AuthorizeCodeStorage
+	accessTokens  oauth2.AccessTokenStorage
+	refreshTokens oauth2.RefreshTokenStorage
 }
 
 func (f *AccessTokenFlow) Handle(ctx context.Context, req *AccessTokenRequest) (oauth2.Response, error) {
@@ -122,6 +123,15 @@ func (f *AccessTokenFlow) Handle(ctx context.Context, req *AccessTokenRequest) (
 	return resp, nil
 }
 
-func NewAccessTokenHandler() *AccessTokenFlow {
-	return &AccessTokenFlow{}
+func NewAccessTokenHandler(
+	clients oauth2.ClientStorage,
+	codes oauth2.AuthorizeCodeStorage,
+	accessTokens oauth2.AccessTokenStorage,
+	refreshTokens oauth2.RefreshTokenStorage) *AccessTokenFlow {
+	return &AccessTokenFlow{
+		clients:       clients,
+		codes:         codes,
+		accessTokens:  accessTokens,
+		refreshTokens: refreshTokens,
+	}
 }

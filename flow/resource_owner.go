@@ -79,6 +79,11 @@ func (f *ResourceOwnerFlow) Handle(ctx context.Context, req *ResourceOwnerReques
 	return resp, nil
 }
 
-func NewResourceOwnerHandler() *ResourceOwnerFlow {
-	return &ResourceOwnerFlow{}
+func NewResourceOwnerHandler(clients oauth2.ClientStorage, users oauth2.UserStorage, sessions oauth2.SessionStorage, accessTokens oauth2.AccessTokenStorage) *ResourceOwnerFlow {
+	return &ResourceOwnerFlow{
+		clients:      clients,
+		users:        users,
+		sessions:     sessions,
+		accessTokens: accessTokens,
+	}
 }

@@ -10,11 +10,10 @@ type RevokeHandler struct {
 	revokeTokenFlow *flow.RevokeTokenFlow
 }
 
-func NewRevokeHandler() oauth2.Handler {
+func NewRevokeHandler(clients oauth2.ClientStorage, tokens oauth2.TokenStorage) oauth2.Handler {
 	return &RevokeHandler{
-		revokeTokenFlow: flow.NewRevokeTokenHandler(),
+		revokeTokenFlow: flow.NewRevokeTokenHandler(clients, tokens, tokens, tokens),
 	}
-
 }
 
 func (h *RevokeHandler) Handle(ctx context.Context, req oauth2.Request) (oauth2.Response, error) {

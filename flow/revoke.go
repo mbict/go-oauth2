@@ -90,6 +90,11 @@ func (f *RevokeTokenFlow) Handle(ctx context.Context, req *RevokeTokenRequest) (
 	return &RevokeTokenResponse{}, nil
 }
 
-func NewRevokeTokenHandler() *RevokeFlow {
-	return &RevokeFlow{}
+func NewRevokeTokenHandler(clients oauth2.ClientStorage, authorizeCodes oauth2.AuthorizeCodeStorage, accessTokens oauth2.AccessTokenStorage, refreshTokens oauth2.RefreshTokenStorage) *RevokeTokenFlow {
+	return &RevokeTokenFlow{
+		clients:        clients,
+		authorizeCodes: authorizeCodes,
+		accessTokens:   accessTokens,
+		refreshTokens:  refreshTokens,
+	}
 }

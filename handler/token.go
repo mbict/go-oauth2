@@ -13,14 +13,13 @@ type TokenHandler struct {
 	refreshHandler           *flow.RefreshFlow
 }
 
-func NewTokenHandler() oauth2.Handler {
+func NewTokenHandler(clients oauth2.ClientStorage, users oauth2.UserStorage, sessions oauth2.SessionStorage, tokens oauth2.TokenStorage) oauth2.Handler {
 	return &TokenHandler{
-		accessTokenHandler:       flow.NewAccessTokenHandler(),
-		resourceOwnerHandler:     flow.NewResourceOwnerHandler(),
-		clientCredentialsHandler: flow.NewClientCredentialsHandler(),
-		refreshHandler:           flow.NewRefreshHandler(),
+		accessTokenHandler:       flow.NewAccessTokenHandler(clients, tokens, tokens, tokens),
+		resourceOwnerHandler:     flow.NewResourceOwnerHandler(clients, users, sessions, tokens),
+		clientCredentialsHandler: flow.NewClientCredentialsHandler(clients, tokens),
+		refreshHandler:           flow.NewRefreshHandler(clients, tokens, tokens),
 	}
-
 }
 
 func (h *TokenHandler) Handle(ctx context.Context, req oauth2.Request) (oauth2.Response, error) {

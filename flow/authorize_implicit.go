@@ -14,7 +14,7 @@ type ImplicitAuthorizeRequest struct {
 	redirectUri string
 	scope       oauth2.Scope
 	state       string
-	//session     *oauth2.Session
+	session     *oauth2.Session
 }
 
 func (_ *ImplicitAuthorizeRequest) Type() string {
@@ -72,7 +72,8 @@ func (r *ImplicitAuthorizeResponse) EncodeResponse(_ context.Context, rw http.Re
 }
 
 type ImplicitAuthorizeFlow struct {
-	clients oauth2.ClientStorage
+	clients      oauth2.ClientStorage
+	accessTokens oauth2.AccessTokenStorage
 }
 
 func (f *ImplicitAuthorizeFlow) Handle(ctx context.Context, req *ImplicitAuthorizeRequest) (oauth2.Response, error) {
@@ -105,6 +106,9 @@ func (f *ImplicitAuthorizeFlow) Handle(ctx context.Context, req *ImplicitAuthori
 	return resp, nil
 }
 
-func NewImplicitAuthorizeHandler() *ImplicitAuthorizeFlow {
-	return &ImplicitAuthorizeFlow{}
+func NewImplicitAuthorizeHandler(clients oauth2.ClientStorage, accessTokens oauth2.AccessTokenStorage) *ImplicitAuthorizeFlow {
+	return &ImplicitAuthorizeFlow{
+		clients:      clients,
+		accessTokens: accessTokens,
+	}
 }

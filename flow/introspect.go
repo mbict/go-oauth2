@@ -136,6 +136,11 @@ func (f *IntrospectFlow) Handle(ctx context.Context, req *IntrospectRequest) (oa
 	}, nil
 }
 
-func NewIntrospectHandler() *IntrospectFlow {
-	return &IntrospectFlow{}
+func NewIntrospectHandler(clients oauth2.ClientStorage, accessTokens oauth2.AccessTokenStorage, refreshTokens oauth2.RefreshTokenStorage) *IntrospectFlow {
+	return &IntrospectFlow{
+		clients:       clients,
+		accessTokens:  accessTokens,
+		refreshTokens: refreshTokens,
+	}
+
 }
