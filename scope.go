@@ -1,6 +1,8 @@
 package oauth2
 
-import "strings"
+import (
+	"strings"
+)
 
 type Scope []string
 
@@ -29,5 +31,12 @@ func (s Scope) String() string {
 
 // ScopeFromString creates a new scope from a space delimited string
 func ScopeFromString(str string) Scope {
-	return Scope(strings.Split(str, " "))
+	var scopes Scope
+	for _, v := range strings.Split(str, " ") {
+		s := strings.TrimSpace(v)
+		if len(s) > 0 {
+			scopes = append(scopes, s)
+		}
+	}
+	return scopes
 }

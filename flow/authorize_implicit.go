@@ -65,8 +65,9 @@ func (r *ImplicitAuthorizeResponse) EncodeResponse(_ context.Context, rw http.Re
 	if r.State != "" {
 		q.Add("state", r.State)
 	}
+	r.RedirectUri.RawQuery = q.Encode()
 
-	rw.Header().Set("Location", r.RedirectUri.RequestURI())
+	rw.Header().Set("Location", r.RedirectUri.String())
 	rw.WriteHeader(http.StatusFound)
 	return nil
 }

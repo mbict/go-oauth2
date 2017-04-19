@@ -57,8 +57,9 @@ func (r *AuthorizeCodeResponse) EncodeResponse(_ context.Context, rw http.Respon
 	if r.State != "" {
 		q.Add("state", r.State)
 	}
+	r.RedirectUri.RawQuery = q.Encode()
 
-	rw.Header().Set("Location", r.RedirectUri.RequestURI())
+	rw.Header().Set("Location", r.RedirectUri.String())
 	rw.WriteHeader(http.StatusFound)
 	return nil
 }
@@ -81,12 +82,12 @@ func (f *AuthorizeCodeFlow) Handle(ctx context.Context, req *AuthorizeCodeReques
 	}
 
 	//check if all the scopes are there
-	if !client.Scope().Has(req.scope) {
+	if len(req.scope) > 0 && !client.Scope().Has(req.scope) {
 		return nil, oauth2.ErrInvalidScope
 	}
 
 	//generate authorization code
-	code := ""
+	code := "testcode"
 
 	resp := &AuthorizeCodeResponse{
 		Code:        code,
