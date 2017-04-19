@@ -21,7 +21,7 @@ type requestDecoder struct {
 
 func (d *requestDecoder) DecodeRequest(ctx context.Context, req *http.Request) (Request, error) {
 	for _, decoder := range d.decoders {
-		if r, err := decoder.DecodeRequest(ctx, req); req != nil || err != nil {
+		if r, err := decoder.DecodeRequest(ctx, req); r != nil || err != nil {
 			return r, err
 		}
 	}

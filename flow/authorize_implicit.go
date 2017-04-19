@@ -25,7 +25,6 @@ func (_ *ImplicitAuthorizeRequest) DecodeRequest(ctx context.Context, req *http.
 	if req.FormValue("response_type") != "token" {
 		return nil, nil
 	}
-
 	clientId := req.FormValue("client_id")
 	redirectUri := req.FormValue("redirect_uri")
 	scope := oauth2.ScopeFromString(req.FormValue("scope"))
@@ -44,9 +43,9 @@ type ImplicitAuthorizeResponse struct {
 	AccessToken string
 	TokenType   string
 	// ExpiresIn in seconds
-	ExpireIn time.Duration
-	Scope    oauth2.Scope
-	State    string
+	ExpiresIn time.Duration
+	Scope     oauth2.Scope
+	State     string
 }
 
 func (r *ImplicitAuthorizeResponse) EncodeResponse(_ context.Context, rw http.ResponseWriter) error {
@@ -54,8 +53,8 @@ func (r *ImplicitAuthorizeResponse) EncodeResponse(_ context.Context, rw http.Re
 	q.Add("access_token", r.AccessToken)
 	q.Add("token_type", r.TokenType)
 
-	if r.ExpireIn.Seconds() > 0 {
-		q.Add("expires_in", strconv.Itoa(int(r.ExpireIn.Seconds())))
+	if r.ExpiresIn.Seconds() > 0 {
+		q.Add("expires_in", strconv.Itoa(int(r.ExpiresIn.Seconds())))
 	}
 
 	if len(r.Scope) > 0 {
@@ -98,10 +97,12 @@ func (f *ImplicitAuthorizeFlow) Handle(ctx context.Context, req *ImplicitAuthori
 	accessToken := ""
 	expiresIn := time.Hour * 24
 
-	resp := &AccessTokenResponse{
+	resp := &ImplicitAuthorizeResponse{
 		AccessToken: accessToken,
 		TokenType:   "implicit_authorization",
 		ExpiresIn:   expiresIn,
+		Scope:       req.scope,
+		State:       req.state,
 	}
 
 	return resp, nil
