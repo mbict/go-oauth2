@@ -84,12 +84,12 @@ func (f *ImplicitAuthorizeFlow) Handle(ctx context.Context, req *ImplicitAuthori
 	}
 
 	// validate redirect uri is registered
-	if !client.HasRedirectUri(req.redirectUri) {
+	if !hasRedirectUri(client.RedirectUri(), req.redirectUri) {
 		return nil, oauth2.ErrInvalidRequest
 	}
 
 	//check if all the scopes are there
-	if !client.Scope.Has(req.scope) {
+	if !client.Scope().Has(req.scope) {
 		return nil, oauth2.ErrInvalidScope
 	}
 

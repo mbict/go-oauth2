@@ -86,19 +86,19 @@ type AccessTokenFlow struct {
 
 func (f *AccessTokenFlow) Handle(ctx context.Context, req *AccessTokenRequest) (oauth2.Response, error) {
 	//authenticate client credentials
-	client, err := f.clients.Authenticate(req.clientId, req.clientSecret)
+	client, err := f.clients.AuthenticateClient(req.clientId, req.clientSecret)
 	if err != nil {
 		return nil, oauth2.ErrUnauthorizedClient
 	}
 
 	//check if code session exists for this client id
 	code, err := f.codes.GetAuthorizeCodeSession(req.code)
-	if err != nil || code.ClientId != client.ClientId {
+	if err != nil || code.ClientId() != client.ClientId() {
 		return nil, oauth2.ErrInvalidRequest
 	}
 
 	//check if the redirect uri matches the request
-	if code.RedirectUri != req.redirectUri {
+	if code.RedirectUri() != req.redirectUri {
 		return nil, oauth2.ErrInvalidRequest
 	}
 

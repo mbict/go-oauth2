@@ -95,12 +95,12 @@ type IntrospectFlow struct {
 
 func (f *IntrospectFlow) Handle(ctx context.Context, req *IntrospectRequest) (oauth2.Response, error) {
 	//authenticate client credentials
-	_, err := f.clients.Authenticate(req.clientId, req.clientSecret)
+	_, err := f.clients.AuthenticateClient(req.clientId, req.clientSecret)
 	if err != nil {
 		return nil, oauth2.ErrUnauthorizedClient
 	}
 
-	var token *oauth2.Token
+	var token oauth2.Token
 	if req.tokenType == "" || req.tokenType == "access_token" {
 		token, err = f.accessTokens.GetAccessTokenSession(req.token)
 		if err != nil {
@@ -123,16 +123,16 @@ func (f *IntrospectFlow) Handle(ctx context.Context, req *IntrospectRequest) (oa
 
 	//if we got a user session we provide the username
 	username := ""
-	if token.Session != nil {
-		username = token.Session.Username
+	if token.Session() != nil {
+		username = token.Session().Username()
 	}
 
 	return &IntrospectResponse{
 		Active:    true,
-		Scope:     token.Scope,
-		TokenType: token.Type,
+		Scope:     token.Scope(),
+		TokenType: token.Type(),
 		Username:  username,
-		ClientId:  token.ClientId,
+		ClientId:  token.ClientId(),
 	}, nil
 }
 

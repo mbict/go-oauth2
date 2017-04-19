@@ -39,13 +39,13 @@ type ClientCredentialsFlow struct {
 func (f *ClientCredentialsFlow) Handle(ctx context.Context, req *ClientCredentialsRequest) (oauth2.Response, error) {
 
 	//authenticate client credentials
-	client, err := f.clients.Authenticate(req.clientId, req.clientSecret)
+	client, err := f.clients.AuthenticateClient(req.clientId, req.clientSecret)
 	if err != nil {
 		return nil, oauth2.ErrUnauthorizedClient
 	}
 
 	//check if all the scopes are there
-	if !client.Scope.Has(req.scope) {
+	if !client.Scope().Has(req.scope) {
 		return nil, oauth2.ErrInvalidScope
 	}
 

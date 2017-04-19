@@ -57,5 +57,5 @@ type ErrorResponse struct {
 }
 
 func (e *ErrorResponse) error() error {
-
+	return nil
 }

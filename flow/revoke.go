@@ -50,7 +50,7 @@ type RevokeTokenFlow struct {
 
 func (f *RevokeTokenFlow) Handle(ctx context.Context, req *RevokeTokenRequest) (oauth2.Response, error) {
 	//authenticate client credentials
-	_, err := f.clients.Authenticate(req.clientId, req.clientSecret)
+	_, err := f.clients.AuthenticateClient(req.clientId, req.clientSecret)
 	if err != nil {
 		return nil, oauth2.ErrUnauthorizedClient
 	}

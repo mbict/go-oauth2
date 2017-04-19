@@ -46,25 +46,24 @@ type ResourceOwnerFlow struct {
 }
 
 func (f *ResourceOwnerFlow) Handle(ctx context.Context, req *ResourceOwnerRequest) (oauth2.Response, error) {
-
 	//authenticate client credentials
-	client, err := f.clients.Authenticate(req.clientId, req.clientSecret)
+	client, err := f.clients.AuthenticateClient(req.clientId, req.clientSecret)
 	if err != nil {
 		return nil, oauth2.ErrUnauthorizedClient
 	}
 
-	user, err := f.users.Authenticate(req.username, req.password)
+	username, err := f.users.AuthenticateUser(req.username, req.password)
 	if err != nil {
 		return nil, oauth2.ErrUnauthorizedClient
 	}
 
 	//check if all the scopes are there
-	if !client.Scope.Has(req.scope) {
+	if !client.Scope().Has(req.scope) {
 		return nil, oauth2.ErrInvalidScope
 	}
 
 	//create a session for the authenticated user
-	//f.sessions.NewSession()
+	f.sessions.NewSession(client.ClientId(), username)
 
 	//create new access token
 	token := ""

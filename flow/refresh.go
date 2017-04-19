@@ -44,19 +44,19 @@ type RefreshFlow struct {
 
 func (f *RefreshFlow) Handle(ctx context.Context, req *RefreshRequest) (oauth2.Response, error) {
 	//authenticate client credentials
-	client, err := f.clients.Authenticate(req.clientId, req.clientSecret)
+	client, err := f.clients.AuthenticateClient(req.clientId, req.clientSecret)
 	if err != nil {
 		return nil, oauth2.ErrUnauthorizedClient
 	}
 
 	//get the refresh token from storage
 	token, err := f.refreshTokens.GetRefreshTokenSession(req.refreshToken)
-	if err != nil || token.ClientId != client.ClientId {
+	if err != nil || token.ClientId() != client.ClientId() {
 		return nil, oauth2.ErrInvalidRequest
 	}
 
 	//check if all the scopes are valid
-	if !token.Scope.Has(req.scope) {
+	if !token.Scope().Has(req.scope) {
 		return nil, oauth2.ErrInvalidScope
 	}
 

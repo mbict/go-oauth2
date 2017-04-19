@@ -76,12 +76,12 @@ func (f *AuthorizeCodeFlow) Handle(ctx context.Context, req *AuthorizeCodeReques
 	}
 
 	// validate redirect uri is registered
-	if !client.HasRedirectUri(req.redirectUri.String()) {
+	if !hasRedirectUri(client.RedirectUri(), req.redirectUri.String()) {
 		return nil, oauth2.ErrInvalidRequest
 	}
 
 	//check if all the scopes are there
-	if !client.Scope.Has(req.scope) {
+	if !client.Scope().Has(req.scope) {
 		return nil, oauth2.ErrInvalidScope
 	}
 
