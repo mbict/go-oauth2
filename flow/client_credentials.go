@@ -13,10 +13,6 @@ type ClientCredentialsRequest struct {
 	scope        oauth2.Scope
 }
 
-func (_ *ClientCredentialsRequest) Type() string {
-	return "ClientCredentials"
-}
-
 func (_ *ClientCredentialsRequest) DecodeRequest(ctx context.Context, req *http.Request) (oauth2.Request, error) {
 	if req.FormValue("grant_type") != "client_credentials" {
 		return nil, nil

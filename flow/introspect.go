@@ -15,10 +15,6 @@ type IntrospectRequest struct {
 	tokenType    oauth2.TokenType
 }
 
-func (_ *IntrospectRequest) Type() string {
-	return "Introspect"
-}
-
 func (_ *IntrospectRequest) DecodeRequest(ctx context.Context, req *http.Request) (oauth2.Request, error) {
 	if req.FormValue("grant_type") != "password" {
 		return nil, nil

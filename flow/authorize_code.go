@@ -1,29 +1,23 @@
 package flow
 
 import (
-	"auth/session"
 	"context"
 	"github.com/mbict/go-oauth2"
 	"net/http"
 	"net/url"
 )
 
-type AuthorizeCodeRequest struct {
-	clientId    oauth2.ClientId
-	redirectUri *url.URL
-	scope       oauth2.Scope
-	state       string
-	session     *session.Session
+type AuthorizeRequest struct {
+	ResponseTypes oauth2.ResponseTypes
+	ClientId      oauth2.ClientId
+	RedirectUri   *url.URL
+	Scope         oauth2.Scope
+	State         string
+	Session       *oauth2.Session
 }
 
-func (_ *AuthorizeCodeRequest) Type() string {
-	return "AuthorizeCode"
-}
-
-func (_ *AuthorizeCodeRequest) DecodeRequest(ctx context.Context, req *http.Request) (oauth2.Request, error) {
-	if req.FormValue("response_type") != "code" {
-		return nil, nil
-	}
+func (_ *AuthorizeRequest) DecodeRequest(ctx context.Context, req *http.Request) (oauth2.Request, error) {
+	responseTypes := oauth2.ResponseTypeFromString(req.FormValue("response_type"))
 
 	//redirect url parsing and encoding
 	rawRedirectUri := req.FormValue("redirect_uri")
@@ -36,11 +30,12 @@ func (_ *AuthorizeCodeRequest) DecodeRequest(ctx context.Context, req *http.Requ
 	scope := oauth2.ScopeFromString(req.FormValue("scope"))
 	state := req.FormValue("state")
 
-	return &AuthorizeCodeRequest{
-		clientId:    oauth2.ClientId(clientId),
-		redirectUri: redirectUri,
-		scope:       scope,
-		state:       state,
+	return &AuthorizeRequest{
+		ResponseTypes: responseTypes,
+		ClientId:      oauth2.ClientId(clientId),
+		RedirectUri:   redirectUri,
+		Scope:         scope,
+		State:         state,
 	}, nil
 }
 
@@ -69,20 +64,24 @@ type AuthorizeCodeFlow struct {
 	codes   oauth2.AuthorizeCodeStorage
 }
 
-func (f *AuthorizeCodeFlow) Handle(ctx context.Context, req *AuthorizeCodeRequest) (oauth2.Response, error) {
+func (f *AuthorizeCodeFlow) Handle(ctx context.Context, req *AuthorizeRequest) (oauth2.Response, error) {
+	if !req.ResponseTypes.Contains(oauth2.CODE) {
+		return nil, oauth2.ErrInvalidRequest
+	}
+
 	//find client
-	client, err := f.clients.GetClient(req.clientId)
+	client, err := f.clients.GetClient(req.ClientId)
 	if err != nil {
 		return nil, oauth2.ErrUnauthorizedClient
 	}
 
 	// validate redirect uri is registered
-	if !hasRedirectUri(client.RedirectUri(), req.redirectUri.String()) {
+	if !hasRedirectUri(client.RedirectUri(), req.RedirectUri.String()) {
 		return nil, oauth2.ErrInvalidRequest
 	}
 
 	//check if all the scopes are there
-	if len(req.scope) > 0 && !client.Scope().Has(req.scope) {
+	if len(req.Scope) > 0 && !client.Scope().Has(req.Scope) {
 		return nil, oauth2.ErrInvalidScope
 	}
 
@@ -91,8 +90,8 @@ func (f *AuthorizeCodeFlow) Handle(ctx context.Context, req *AuthorizeCodeReques
 
 	resp := &AuthorizeCodeResponse{
 		Code:        code,
-		State:       req.state,
-		RedirectUri: req.redirectUri,
+		State:       req.State,
+		RedirectUri: req.RedirectUri,
 	}
 
 	return resp, nil

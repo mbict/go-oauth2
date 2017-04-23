@@ -19,11 +19,14 @@ func NewAuthorizeHandler(clients oauth2.ClientStorage, tokens oauth2.TokenStorag
 }
 
 func (h *AuthorizeHandler) Handle(ctx context.Context, req oauth2.Request) (oauth2.Response, error) {
-	switch t := req.(type) {
-	case *flow.AuthorizeCodeRequest:
-		return h.authorizeCodeHandler.Handle(ctx, t)
-	case *flow.ImplicitAuthorizeRequest:
-		return h.implicitAuthorizeHandler.Handle(ctx, t)
+	if ar, ok := req.(*flow.AuthorizeRequest); ok {
+		if ar.ResponseTypes.Contains(oauth2.CODE) {
+			return h.authorizeCodeHandler.Handle(ctx, ar)
+		}
+
+		if ar.ResponseTypes.Contains(oauth2.TOKEN) {
+			return h.implicitAuthorizeHandler.Handle(ctx, ar)
+		}
 	}
 	return nil, oauth2.ErrInvalidRequest
 }

@@ -1,5 +1,7 @@
 package oauth2
 
+import "strings"
+
 type ClientId string
 type Client interface {
 	ClientId() ClientId
@@ -59,6 +61,17 @@ func (rts ResponseTypes) Contains(responseType ResponseType) bool {
 		}
 	}
 	return false
+}
+
+func ResponseTypeFromString(str string) ResponseTypes {
+	var responseTypes ResponseTypes
+	for _, v := range strings.Split(str, " ") {
+		s := strings.TrimSpace(v)
+		if len(s) > 0 {
+			responseTypes = append(responseTypes, ResponseType(s))
+		}
+	}
+	return responseTypes
 }
 
 const (

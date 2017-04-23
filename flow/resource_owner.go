@@ -16,10 +16,6 @@ type ResourceOwnerRequest struct {
 	scope        []string
 }
 
-func (_ *ResourceOwnerRequest) Type() string {
-	return "ResourceOwner"
-}
-
 func (_ *ResourceOwnerRequest) DecodeRequest(ctx context.Context, req *http.Request) (oauth2.Request, error) {
 	if req.FormValue("grant_type") != "password" {
 		return nil, nil

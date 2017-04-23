@@ -15,10 +15,6 @@ type RefreshRequest struct {
 	scope        []string //optional
 }
 
-func (_ *RefreshRequest) Type() string {
-	return "Refresh"
-}
-
 func (_ *RefreshRequest) DecodeRequest(ctx context.Context, req *http.Request) (oauth2.Request, error) {
 	if req.FormValue("grant_type") != "refresh_token" {
 		return nil, nil

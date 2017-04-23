@@ -13,10 +13,6 @@ type RevokeTokenRequest struct {
 	tokenType    string
 }
 
-func (_ *RevokeTokenRequest) Type() string {
-	return "Revoke"
-}
-
 func (_ *RevokeTokenRequest) DecodeRequest(ctx context.Context, req *http.Request) (oauth2.Request, error) {
 	if req.FormValue("grant_type") != "password" {
 		return nil, nil

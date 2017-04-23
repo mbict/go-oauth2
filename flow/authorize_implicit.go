@@ -9,35 +9,6 @@ import (
 	"time"
 )
 
-type ImplicitAuthorizeRequest struct {
-	clientId    oauth2.ClientId
-	redirectUri string
-	scope       oauth2.Scope
-	state       string
-	session     *oauth2.Session
-}
-
-func (_ *ImplicitAuthorizeRequest) Type() string {
-	return "ImplicitAuthorize"
-}
-
-func (_ *ImplicitAuthorizeRequest) DecodeRequest(ctx context.Context, req *http.Request) (oauth2.Request, error) {
-	if req.FormValue("response_type") != "token" {
-		return nil, nil
-	}
-	clientId := req.FormValue("client_id")
-	redirectUri := req.FormValue("redirect_uri")
-	scope := oauth2.ScopeFromString(req.FormValue("scope"))
-	state := req.FormValue("state")
-
-	return &ImplicitAuthorizeRequest{
-		clientId:    oauth2.ClientId(clientId),
-		redirectUri: redirectUri,
-		scope:       scope,
-		state:       state,
-	}, nil
-}
-
 type ImplicitAuthorizeResponse struct {
 	RedirectUri url.URL
 	AccessToken string
@@ -76,20 +47,24 @@ type ImplicitAuthorizeFlow struct {
 	accessTokens oauth2.AccessTokenStorage
 }
 
-func (f *ImplicitAuthorizeFlow) Handle(ctx context.Context, req *ImplicitAuthorizeRequest) (oauth2.Response, error) {
+func (f *ImplicitAuthorizeFlow) Handle(ctx context.Context, req *AuthorizeRequest) (oauth2.Response, error) {
+	if !req.ResponseTypes.Contains(oauth2.TOKEN) {
+		return nil, oauth2.ErrInvalidRequest
+	}
+
 	//find  client
-	client, err := f.clients.GetClient(req.clientId)
+	client, err := f.clients.GetClient(req.ClientId)
 	if err != nil {
 		return nil, oauth2.ErrUnauthorizedClient
 	}
 
 	// validate redirect uri is registered
-	if !hasRedirectUri(client.RedirectUri(), req.redirectUri) {
+	if !hasRedirectUri(client.RedirectUri(), req.RedirectUri.String()) {
 		return nil, oauth2.ErrInvalidRequest
 	}
 
 	//check if all the scopes are there
-	if !client.Scope().Has(req.scope) {
+	if !client.Scope().Has(req.Scope) {
 		return nil, oauth2.ErrInvalidScope
 	}
 
@@ -101,8 +76,8 @@ func (f *ImplicitAuthorizeFlow) Handle(ctx context.Context, req *ImplicitAuthori
 		AccessToken: accessToken,
 		TokenType:   "implicit_authorization",
 		ExpiresIn:   expiresIn,
-		Scope:       req.scope,
-		State:       req.state,
+		Scope:       req.Scope,
+		State:       req.State,
 	}
 
 	return resp, nil

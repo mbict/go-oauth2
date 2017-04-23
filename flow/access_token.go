@@ -15,10 +15,6 @@ type AccessTokenRequest struct {
 	redirectUri  string
 }
 
-func (_ *AccessTokenRequest) Type() string {
-	return "AccesToken"
-}
-
 func (_ *AccessTokenRequest) DecodeRequest(ctx context.Context, req *http.Request) (oauth2.Request, error) {
 	if req.FormValue("grant_type") != "authorization_code" {
 		return nil, nil

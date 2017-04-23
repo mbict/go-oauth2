@@ -11,8 +11,6 @@ type RequestDecoder interface {
 
 type Request interface {
 	RequestDecoder
-	//Type describes the name of the request
-	Type() string
 }
 
 type requestDecoder struct {
