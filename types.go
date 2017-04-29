@@ -1,6 +1,9 @@
 package oauth2
 
-import "strings"
+import (
+	"bytes"
+	"strings"
+)
 
 type ClientId string
 type Client interface {
@@ -34,7 +37,10 @@ type Token interface {
 	Session() Session
 }
 
+type SessionId string
+
 type Session interface {
+	Id() SessionId
 	Username() string
 }
 
@@ -61,6 +67,17 @@ func (rts ResponseTypes) Contains(responseType ResponseType) bool {
 		}
 	}
 	return false
+}
+
+func (rts ResponseTypes) String() string {
+	res := bytes.NewBuffer(nil)
+	for i, rt := range rts {
+		if i != 0 {
+			res.WriteByte(' ')
+		}
+		res.WriteString(string(rt))
+	}
+	return res.String()
 }
 
 func ResponseTypeFromString(str string) ResponseTypes {

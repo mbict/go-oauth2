@@ -5,8 +5,10 @@ import (
 )
 
 var (
-	ErrCodeNotFound  = errors.New("code not found")
-	ErrTokenNotFound = errors.New("token not found")
+	ErrClientNotFound  = errors.New("client not found")
+	ErrSessionNotFound = errors.New("session not found")
+	ErrCodeNotFound    = errors.New("code not found")
+	ErrTokenNotFound   = errors.New("token not found")
 )
 
 type TokenStorage interface {
@@ -44,4 +46,5 @@ type UserStorage interface {
 
 type SessionStorage interface {
 	NewSession(clientId ClientId, username string) error
+	GetSession(SessionId) (Session, error)
 }

@@ -7,38 +7,6 @@ import (
 	"net/url"
 )
 
-type AuthorizeRequest struct {
-	ResponseTypes oauth2.ResponseTypes
-	ClientId      oauth2.ClientId
-	RedirectUri   *url.URL
-	Scope         oauth2.Scope
-	State         string
-	Session       *oauth2.Session
-}
-
-func (_ *AuthorizeRequest) DecodeRequest(ctx context.Context, req *http.Request) (oauth2.Request, error) {
-	responseTypes := oauth2.ResponseTypeFromString(req.FormValue("response_type"))
-
-	//redirect url parsing and encoding
-	rawRedirectUri := req.FormValue("redirect_uri")
-	redirectUri, err := url.Parse(rawRedirectUri)
-	if err != nil {
-		return nil, oauth2.ErrInvalidRequest
-	}
-
-	clientId := req.FormValue("client_id")
-	scope := oauth2.ScopeFromString(req.FormValue("scope"))
-	state := req.FormValue("state")
-
-	return &AuthorizeRequest{
-		ResponseTypes: responseTypes,
-		ClientId:      oauth2.ClientId(clientId),
-		RedirectUri:   redirectUri,
-		Scope:         scope,
-		State:         state,
-	}, nil
-}
-
 type AuthorizeCodeResponse struct {
 	RedirectUri *url.URL
 	Code        string
