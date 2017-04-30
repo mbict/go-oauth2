@@ -1,4 +1,4 @@
-package flow
+package oauth2
 
 import (
 	"net/http"
