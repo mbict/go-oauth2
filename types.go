@@ -11,6 +11,8 @@ type Client interface {
 	ClientSecret() string
 	Name() string
 	RedirectUri() []string
+	GrantTypes() []GrantType
+	ResponseTypes() ResponseTypes
 	Scope() Scope
 }
 
@@ -22,35 +24,28 @@ type Code interface {
 	State() string
 }
 
-type TokenType string
-
-const (
-	REFRESH_TOKEN = "refresh_token"
-	ACCESS_TOKEN  = "access_token"
-)
+//type TokenType string
+//
+//const (
+//	REFRESH_TOKEN = "refresh_token"
+//	ACCESS_TOKEN  = "access_token"
+//)
 
 type Token interface {
 	ClientId() ClientId
 	Token() string
 	Scope() Scope
-	Type() TokenType
+	//	Type() TokenType
 	Session() Session
-}
-
-type SessionId string
-
-type Session interface {
-	Id() SessionId
-	Username() string
 }
 
 type GrantType string
 
 const (
-//PASSWORD           GrantType = "password"
-//AUTHORIZATION_CODE GrantType = "authorization_code"
-//CLIENT_CREDENTIALS GrantType = "client_credentials"
-//REFRESH_TOKEN      GrantType = "refresh_token"
+	PASSWORD           = "password"
+	AUTHORIZATION_CODE = "authorization_code"
+	CLIENT_CREDENTIALS = "client_credentials"
+	REFRESH_TOKEN      = "refresh_token"
 )
 
 func (g GrantType) String() string {
@@ -80,7 +75,7 @@ func (rts ResponseTypes) String() string {
 	return res.String()
 }
 
-func ResponseTypeFromString(str string) ResponseTypes {
+func responseTypeFromString(str string) ResponseTypes {
 	var responseTypes ResponseTypes
 	for _, v := range strings.Split(str, " ") {
 		s := strings.TrimSpace(v)

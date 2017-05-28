@@ -1,22 +1,22 @@
 package oauth2
 
 import (
-	"context"
-	"net/http"
+//"context"
+//"net/http"
 )
 
-type SessionResolverFunc func(context.Context, *http.Request) (Session, error)
+// UserSessionResolver should resolve the user_id used inside the session
+// type UserSessionResolver func(context.Context, *http.Request) (string, error)
 
-var SessionCookieId = "ssid"
+// var SessionCookieId = "ssid"
 
-// NewSessionResolver creates asimple session resolver who queries the session storage to find a session
-// The session should be found trough the ssid key
-func NewSessionResolver(sessions SessionStorage) SessionResolverFunc {
-	return func(ctx context.Context, r *http.Request) (Session, error) {
-		ssid, err := r.Cookie(SessionCookieId)
-		if err != nil || ssid == nil {
-			return nil, nil
-		}
-		return sessions.GetSession(SessionId(ssid.Value))
-	}
-}
+// NewSessionResolver creates a simple way to resolve user session based on a cookie
+//func NewUserSessionResolver(sessions SessionResolverStorage) UserSessionResolver {
+//	return func(ctx context.Context, r *http.Request) (Session, error) {
+//		ssid, err := r.Cookie(SessionCookieId)
+//		if err != nil || ssid == nil {
+//			return nil, nil
+//		}
+//		return sessions.GetSession(SessionId(ssid.Value))
+//	}
+//}

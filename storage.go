@@ -1,6 +1,7 @@
 package oauth2
 
 import (
+	"context"
 	"errors"
 )
 
@@ -18,33 +19,32 @@ type TokenStorage interface {
 }
 
 type AuthorizeCodeStorage interface {
-	CreateAuthorizeCodeSession(code string) error
-	GetAuthorizeCodeSession(code string) (Code, error)
-	DeleteAuthorizeCodeSession(code string) (bool, error)
+	CreateAuthorizeCodeSession(ctx context.Context, code string, req Request) error
+	GetAuthorizeCodeSession(ctx context.Context, code string) (Code, error)
+	DeleteAuthorizeCodeSession(ctx context.Context, code string) (bool, error)
 }
 
 type AccessTokenStorage interface {
-	CreateAccessTokenSession(signature string) error
-	GetAccessTokenSession(signature string) (Token, error)
-	DeleteAccessTokenSession(signature string) (bool, error)
+	CreateAccessTokenSession(ctx context.Context, signature string, req Request) error
+	GetAccessTokenSession(ctx context.Context, signature string) (Token, error)
+	DeleteAccessTokenSession(ctx context.Context, signature string) (bool, error)
 }
 
 type RefreshTokenStorage interface {
-	CreateRefreshTokenSession(signature string) error
-	GetRefreshTokenSession(signature string) (Token, error)
-	DeleteRefreshTokenSession(signature string) (bool, error)
+	CreateRefreshTokenSession(ctx context.Context, signature string, req Request) error
+	GetRefreshTokenSession(ctx context.Context, signature string) (Token, error)
+	DeleteRefreshTokenSession(ctx context.Context, signature string) (bool, error)
 }
 
 type ClientStorage interface {
-	AuthenticateClient(clientId ClientId, secret string) (Client, error)
-	GetClient(clientId ClientId) (Client, error)
+	AuthenticateClient(ctx context.Context, clientId string, secret string) (Client, error)
+	GetClient(ctx context.Context, clientId string) (Client, error)
 }
 
 type UserStorage interface {
-	AuthenticateUser(username string, password string) (string, error)
+	AuthenticateUser(ctx context.Context, username string, password string) (string, error)
 }
 
-type SessionStorage interface {
-	NewSession(clientId ClientId, username string) error
-	GetSession(SessionId) (Session, error)
-}
+//type SessionResolverStorage interface {
+//	GetSession(SessionId) (Session, error)
+//}

@@ -3,6 +3,15 @@ package oauth2
 import "errors"
 
 var (
+	// ErrInvalidSignature is used when a malformed signature is used
+	ErrInvalidSignature = errors.New("invalid signature")
+
+	// ErrInvalidToken is used when a request does not provide a token
+	ErrInvalidToken = errors.New("invalid token")
+
+	// ErrInvalidToken is used when a request does not provide a token
+	ErrInvalidCode = errors.New("invalid code")
+
 	// ErrAuthenticateFailed is used when an user could not be authenticated with username and password.
 	ErrAuthenticateFailed = errors.New("authenticate failed")
 
@@ -43,19 +52,10 @@ var (
 	// Thee authorization server does not support
 	// the revocation of the presented token type.
 	ErrUnsupportedTokenType = errors.New("unsupported_token_type")
+
+	ErrInvalidRedirectUri = errors.New("invalid_redirect_uri")
 )
 
 type errorer interface {
 	error() error
-}
-
-type ErrorResponse struct {
-	Error            string
-	ErrorDescription string
-	ErrorUri         string
-	State            string //optional
-}
-
-func (e *ErrorResponse) error() error {
-	return nil
 }

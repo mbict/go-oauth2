@@ -17,3 +17,7 @@ I created this to learn how Oauth2 is implemented.
 # Todo
 - Want to implement
 - Some sort of tests
+
+
+
+Generating tokens is responsible for setting the session expire times

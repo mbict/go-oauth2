@@ -12,10 +12,10 @@ type TokenHandler struct {
 	refreshHandler           *oauth2.RefreshHandler
 }
 
-func NewTokenHandler(clients oauth2.ClientStorage, users oauth2.UserStorage, sessions oauth2.SessionStorage, tokens oauth2.TokenStorage) oauth2.Handler {
+func NewTokenHandler(clients oauth2.ClientStorage, users oauth2.UserStorage /*, sessions oauth2.SessionStorage,*/, tokens oauth2.TokenStorage) oauth2.Handler {
 	return &TokenHandler{
-		accessTokenHandler:       oauth2.NewAccessTokenHandler(clients, tokens, tokens, tokens),
-		resourceOwnerHandler:     oauth2.NewResourceOwnerHandler(clients, users, sessions, tokens),
+		accessTokenHandler: oauth2.NewAccessTokenHandler(clients, tokens, tokens, tokens),
+		//resourceOwnerHandler:     oauth2.NewResourceOwnerHandler(clients, users, sessions, tokens),
 		clientCredentialsHandler: oauth2.NewClientCredentialsHandler(clients, tokens),
 		refreshHandler:           oauth2.NewRefreshHandler(clients, tokens, tokens),
 	}

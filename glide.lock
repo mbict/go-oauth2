@@ -1,0 +1,25 @@
+hash: 1dbb4008ea7b5eec908fbae2d643354a817082633d5e19728a4bf85391fb4510
+updated: 2017-05-23T22:29:41.337907549+02:00
+imports:
+- name: github.com/davecgh/go-spew
+  version: 6d212800a42e8ab5c146b8ace3490ee17e5225f9
+  subpackages:
+  - spew
+- name: github.com/pmezard/go-difflib
+  version: d8ed2627bdf02c080bf22230dbb337003b7aba2d
+  subpackages:
+  - difflib
+- name: github.com/satori/go.uuid
+  version: 5bf94b69c6b68ee1b541973bb8e1144db23a194b
+- name: github.com/stretchr/objx
+  version: cbeaeb16a013161a98496fad62933b1d21786672
+- name: github.com/stretchr/testify
+  version: 69483b4bd14f5845b5a1e55bca19e954e827f1d0
+  subpackages:
+  - assert
+  - mock
+testImports:
+- name: github.com/vektra/mockery
+  version: b6f6c13c25c3f0a17724553fa01580f328158d7a
+- name: gopkg.in/check.v1
+  version: 20d25e2804050c1cd24a7eea1e7a6447dd0e74ec

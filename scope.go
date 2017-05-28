@@ -29,8 +29,8 @@ func (s Scope) String() string {
 	return strings.Join(s, " ")
 }
 
-// ScopeFromString creates a new scope from a space delimited string
-func ScopeFromString(str string) Scope {
+// scopeFromString creates a new scope from a space delimited string
+func scopeFromString(str string) Scope {
 	var scopes Scope
 	for _, v := range strings.Split(str, " ") {
 		s := strings.TrimSpace(v)

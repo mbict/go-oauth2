@@ -1,14 +1,14 @@
 package oauth2
 
 import (
-	"context"
+//"context"
+//"net/url"
 )
 
-type AuthenticateStrategyFunc func(context.Context, *AuthorizeRequest) (Response, error)
-
-//NewAutenticateRedirectStrategy will redirect to the given uri and append all the query data to the url
-// This strategy will will be invoked if there is no user session active.
-//func NewAuthenticateRedirectStrategy(uri string) AuthenticateStrategyFunc {
+//type ConsentStrategyFunc func(context.Context, *AuthorizeRequest) (Response, error)
+//
+////NewConsentRedirectStrategy creates a default redirection strategy and append all the data to the url
+//func NewConsentRedirectStrategy(uri string) ConsentStrategyFunc {
 //	baseUrl, err := url.Parse(uri)
 //	if err != nil {
 //		panic(err)
@@ -16,7 +16,7 @@ type AuthenticateStrategyFunc func(context.Context, *AuthorizeRequest) (Response
 //	return func(ctx context.Context, r *AuthorizeRequest) (Response, error) {
 //		redirectUri := *baseUrl
 //		q := map[string]string{
-//			"client_id":     string(r.Client().ClientId()),
+//			"client_id":     string(r.ClientId),
 //			"response_type": r.responseTypes.String(),
 //			"redirect_uri":  r.RedirectUri.String(),
 //		}
@@ -29,7 +29,7 @@ type AuthenticateStrategyFunc func(context.Context, *AuthorizeRequest) (Response
 //		}
 //
 //		return &ErrorResponse{
-//			Error:       nil, //ErrNeedAuthorizedUser
+//			Error:       nil, //ErrNeedConsent
 //			RedirectUri: &redirectUri,
 //			Query:       q,
 //		}, nil

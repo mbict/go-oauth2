@@ -2,64 +2,74 @@ package oauth2
 
 import (
 	"context"
-	"time"
 )
 
 type AccessTokenHandler struct {
-	clients       ClientStorage
-	codes         AuthorizeCodeStorage
-	accessTokens  AccessTokenStorage
-	refreshTokens RefreshTokenStorage
+	authorizeCodeStorage  AuthorizeCodeStorage
+	accessTokenStorage    AccessTokenStorage
+	refreshTokenStorage   RefreshTokenStorage
+	authorizeCodeStrategy TokenStrategy
+	accessTokenStrategy   TokenStrategy
+	refreshTokenStrategy  TokenStrategy
 }
 
-func (f *AccessTokenHandler) Handle(ctx context.Context, req *AccessTokenRequest) (Response, error) {
-	//authenticate client credentials
-	client, err := f.clients.AuthenticateClient(req.clientId, req.clientSecret)
-	if err != nil {
-		return nil, ErrUnauthorizedClient
-	}
+func (h *AccessTokenHandler) Handle(ctx context.Context, req *AccessTokenRequest) (Response, error) {
+	//validate signature
+	/*	signature, err := h.authorizeCodeStrategy.Signature(req.Code())
+		if err != nil {
+			return nil, ErrInvalidSignature
+		}
 
-	//check if code session exists for this client id
-	code, err := f.codes.GetAuthorizeCodeSession(req.code)
-	if err != nil || code.ClientId() != client.ClientId() {
-		return nil, ErrInvalidRequest
-	}
+		//check if code session exists for this client id
+		code, err := h.codes.GetAuthorizeCodeSession(ctx, signature)
+		if err != nil || code.ClientId() != req.Client().ClientId() {
+			return nil, ErrUnauthorizedClient
+		}
 
-	//check if the redirect uri matches the request
-	if code.RedirectUri() != req.redirectUri {
-		return nil, ErrInvalidRequest
-	}
+		//check if the redirect uri matches the request
+		if code.redirectUri() != req.redirectUri().String() {
+			return nil, ErrInvalidRequest
+		}
 
-	//ok we remove the code token
+		//ok we remove the code token
+		_, err = h.codes.DeleteAuthorizeCodeSession(ctx, signature)
 
-	//ok we create new access token
+		//create access token
+		//accessTokenSignature, accessToken, err := h.accessTokenStrategy.Generate( )
+		//err := h.accessTokenStorage.CreateAccessTokenSession(accessTokenSignature)
 
-	//ok we create new refresh token
+		//ok we create new refresh token
 
-	//create new access token
-	accessToken := ""
-	refreshToken := ""
-	expiresIn := time.Hour * 24
+		//create new access token
 
-	resp := &AccessTokenResponse{
-		AccessToken:  accessToken,
-		TokenType:    "resource_owner",
-		ExpiresIn:    expiresIn,
-		RefreshToken: refreshToken,
-	}
+		//refreshTokenSignature, refreshToken, err := h.refreshTokenStrategy.Generate()
+		expiresIn := time.Hour * 24
 
-	return resp, nil
+		resp := &AccessTokenResponse{
+			//AccessToken:  accessToken,
+			TokenType: "resource_owner",
+			ExpiresIn: expiresIn,
+			//RefreshToken: refreshToken,
+		}
+
+		return resp, nil
+	*/
+	return nil, nil
 }
 
 func NewAccessTokenHandler(
-	clients ClientStorage,
-	codes AuthorizeCodeStorage,
-	accessTokens AccessTokenStorage,
-	refreshTokens RefreshTokenStorage) *AccessTokenHandler {
+	authorizeCodeStorage AuthorizeCodeStorage,
+	accessTokenStorage AccessTokenStorage,
+	refreshTokenStorage RefreshTokenStorage,
+	authorizeCodeStrategy TokenStrategy,
+	accessTokenStrategy TokenStrategy,
+	refreshTokenStrategy TokenStrategy) *AccessTokenHandler {
 	return &AccessTokenHandler{
-		clients:       clients,
-		codes:         codes,
-		accessTokens:  accessTokens,
-		refreshTokens: refreshTokens,
+		authorizeCodeStorage:  authorizeCodeStorage,
+		accessTokenStorage:    accessTokenStorage,
+		refreshTokenStorage:   refreshTokenStorage,
+		authorizeCodeStrategy: authorizeCodeStrategy,
+		accessTokenStrategy:   accessTokenStrategy,
+		refreshTokenStrategy:  refreshTokenStrategy,
 	}
 }
