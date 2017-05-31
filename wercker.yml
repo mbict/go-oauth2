@@ -7,14 +7,11 @@ build:
     - script:
         name: go get
         code: |
-          go get
-
-    - script:
-        name: go build
-        code: |
-          go build ./...
+          go get github.com/Masterminds/glide
+          glide install
 
     - script:
         name: go test
         code: |
-          go test ./...
+          sh generate-mocks.sh
+          go test ./tests

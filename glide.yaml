@@ -2,7 +2,6 @@ package: github.com/mbict/go-oauth2
 import:
 - package: github.com/satori/go.uuid
 testImport:
-- package: gopkg.in/check.v1
 - package: github.com/vektra/mockery
 - package: github.com/stretchr/testify
   subpackages:

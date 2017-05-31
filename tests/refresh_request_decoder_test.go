@@ -2,7 +2,7 @@ package tests
 
 import (
 	. "github.com/mbict/go-oauth2"
-	"github.com/mbict/go-oauth2/tests/mocks"
+	"github.com/mbict/go-oauth2/mocks"
 	"github.com/stretchr/testify/assert"
 	. "github.com/stretchr/testify/mock"
 
