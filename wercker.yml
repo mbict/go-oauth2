@@ -17,3 +17,4 @@ build:
         code: |
           sh generate-mocks.sh
           go test -v ./tests
+          go test -v ./token/...

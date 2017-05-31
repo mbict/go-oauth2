@@ -101,6 +101,8 @@ func TestResourceOwnerRequestDecoder(t *testing.T) {
 	decoder := DecodeResourceOwnerRequest(clientStorage, userStorage)
 
 	for test, tc := range testcases {
+		t.Logf("Test case %s", test)
+
 		r, _ := http.NewRequest("POST", tc.url, nil)
 		r.PostForm, _ = url.ParseQuery(tc.postForm)
 		if tc.authHeader != "" {

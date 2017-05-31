@@ -99,6 +99,8 @@ func TestAuthorizeImplicitHandler(t *testing.T) {
 	}
 
 	for test, tc := range testcases {
+		t.Logf("Test case %s", test)
+
 		accTokenStorage := &mocks.AccessTokenStorage{}
 		accTokenStorage.On("CreateAccessTokenSession", Anything, "test", Anything).Return(tc.errTokenStore)
 

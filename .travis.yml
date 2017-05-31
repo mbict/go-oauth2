@@ -11,4 +11,4 @@ script:
   - glide install
   - sh generate-mocks.sh
   - go test -v ./tests
-  - go test -v ./tests
+  - go test -v ./token/...

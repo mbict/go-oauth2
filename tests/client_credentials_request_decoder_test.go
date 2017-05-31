@@ -83,6 +83,8 @@ func TestClientCredentialsRequestDecoder(t *testing.T) {
 	decoder := DecodeClientCredentialsRequest(storage)
 
 	for test, tc := range testcases {
+		t.Logf("Test case %s", test)
+
 		r, _ := http.NewRequest("POST", tc.url, nil)
 		r.PostForm, _ = url.ParseQuery(tc.postForm)
 		if tc.authHeader != "" {

@@ -98,6 +98,8 @@ func TestAuthorizeCodeHandler(t *testing.T) {
 	}
 
 	for test, tc := range testcases {
+		t.Logf("Test case %s", test)
+
 		authCodeStorage := &mocks.AuthorizeCodeStorage{}
 		authCodeStorage.On("CreateAuthorizeCodeSession", Anything, "test", Anything).Return(tc.errTokenStore)
 

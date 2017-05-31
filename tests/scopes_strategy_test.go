@@ -21,6 +21,8 @@ func TestDefaultScopeStrategy(t *testing.T) {
 	}
 
 	for test, tc := range testcases {
+		t.Logf("Test case %s", test)
+
 		res := DefaultScopeStrategy(tc.scopes, tc.needle...)
 
 		assert.EqualValues(t, tc.expected, res, "[%s] expected %v as result but got %v", test, tc.expected, res)

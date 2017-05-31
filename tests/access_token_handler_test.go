@@ -190,6 +190,8 @@ func TestAccessTokenHandler(t *testing.T) {
 	}
 
 	for test, tc := range testcases {
+		t.Logf("Test case %s", test)
+
 		authSession := &mocks.Session{}
 		authSession.On("ExpiresAt").Return(tc.sessionExpiresAt)
 

@@ -100,6 +100,8 @@ func TestAuthorizeRequestDecoder(t *testing.T) {
 	decoder := DecodeAuthorizeRequest(storage)
 
 	for test, tc := range testcases {
+		t.Logf("Test case %s", test)
+
 		r, _ := http.NewRequest("GET", tc.url, nil)
 		req, err := decoder(nil, r)
 
