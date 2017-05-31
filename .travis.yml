@@ -1,0 +1,12 @@
+sudo: false
+language: go
+go:
+  - 1.8
+  - tip
+
+script:
+  - go get github.com/Masterminds/glide
+  - glide install
+  - sh generate-mocks.sh
+  - go test -v ./tests
+  - go test -v ./tests

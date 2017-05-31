@@ -14,4 +14,4 @@ build:
         name: go test
         code: |
           sh generate-mocks.sh
-          go test ./tests
+          go test -v ./tests
