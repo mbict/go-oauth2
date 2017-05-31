@@ -7,17 +7,23 @@ import (
 	"time"
 )
 
-type AccessTokenRequest struct {
+type AccessTokenRequest interface {
+	Request
+	Code() string
+	RedirectUri() *url.URL
+}
+
+type accessTokenRequest struct {
 	Request
 	code        string
 	redirectUri *url.URL
 }
 
-func (r *AccessTokenRequest) Code() string {
+func (r *accessTokenRequest) Code() string {
 	return r.code
 }
 
-func (r *AccessTokenRequest) RedirectUri() *url.URL {
+func (r *accessTokenRequest) RedirectUri() *url.URL {
 	return r.redirectUri
 }
 
@@ -53,14 +59,11 @@ func DecodeAccessTokenRequest(storage ClientStorage) RequestDecoder {
 			return nil, ErrInvalidCode
 		}
 
-		return &AccessTokenRequest{
+		return &accessTokenRequest{
 			Request: &request{
-				requestedAt: time.Now(),
-				client:      client,
-				//session
+				requestedAt:  time.Now(),
+				client:       client,
 				requestValue: req.Form,
-				//requestedScopes: scope,
-				//grantedScopes:   nil,
 			},
 			code:        code,
 			redirectUri: redirectUri,

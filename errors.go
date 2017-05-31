@@ -3,6 +3,9 @@ package oauth2
 import "errors"
 
 var (
+	// ErrSessionExpired is used when a session is expired
+	ErrSessionExpired = errors.New("session expired")
+
 	// ErrInvalidSignature is used when a malformed signature is used
 	ErrInvalidSignature = errors.New("invalid signature")
 
@@ -31,6 +34,10 @@ var (
 	// The authorization server does not support obtaining an
 	// authorization code using this method.
 	ErrUnsupportedResponseType = errors.New("unsupported_response_type")
+
+	// The authorization server does not support obtaining an
+	// access token using this method.
+	ErrUnsupportedGrantType = errors.New("unsupported_grant_type")
 
 	// The requested scope is invalid, unknown, or malformed.
 	ErrInvalidScope = errors.New("invalid_scope")

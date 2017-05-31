@@ -22,12 +22,14 @@ func TestAuthorizeImplicitHandler(t *testing.T) {
 		error               error
 		errTokenStrat       error
 		errTokenStore       error
+		handled             bool //if the handler successfully processed the request
 	}{
-		//Failures
+		//Ignored
 		"token response type mismatch": {
 			responseTypes: ResponseTypes{CODE},
-			error:         ErrInvalidRequest,
 		},
+
+		//Failures
 		"unsupported response type by client": {
 			responseTypes:       ResponseTypes{TOKEN},
 			clientResponseTypes: ResponseTypes{CODE},
@@ -69,6 +71,7 @@ func TestAuthorizeImplicitHandler(t *testing.T) {
 		"minimal": {
 			responseTypes:       ResponseTypes{TOKEN},
 			clientResponseTypes: ResponseTypes{TOKEN},
+			handled:             true,
 		},
 
 		"with redirect": {
@@ -76,6 +79,7 @@ func TestAuthorizeImplicitHandler(t *testing.T) {
 			clientResponseTypes: ResponseTypes{TOKEN},
 			redirectUri:         "http://test.com/foo",
 			clientRedirectUri:   []string{"http://test.com/foo"},
+			handled:             true,
 		},
 
 		"with scope": {
@@ -83,24 +87,26 @@ func TestAuthorizeImplicitHandler(t *testing.T) {
 			clientResponseTypes: ResponseTypes{TOKEN},
 			scope:               Scope{"foo"},
 			clientScope:         Scope{"foo"},
+			handled:             true,
 		},
 
 		"with state": {
 			responseTypes:       ResponseTypes{TOKEN},
 			clientResponseTypes: ResponseTypes{TOKEN},
 			state:               "12345",
+			handled:             true,
 		},
 	}
 
 	for test, tc := range testcases {
-		accCodeStorage := &mocks.AccessTokenStorage{}
-		accCodeStorage.On("CreateAccessTokenSession", Anything, "test", Anything).Return(tc.errTokenStore)
+		accTokenStorage := &mocks.AccessTokenStorage{}
+		accTokenStorage.On("CreateAccessTokenSession", Anything, "test", Anything).Return(tc.errTokenStore)
 
-		authCodeStrat := &mocks.TokenStrategy{}
-		authCodeStrat.On("Generate", Anything).Return("test", "test.token", tc.errTokenStrat)
+		accTokenStrat := &mocks.TokenStrategy{}
+		accTokenStrat.On("Generate", Anything).Return("test", "test.token", tc.errTokenStrat)
 
 		scopeStrat := DefaultScopeStrategy
-		handler := NewImplicitAuthorizeHandler(accCodeStorage, authCodeStrat, scopeStrat)
+		handler := NewImplicitAuthorizeHandler(accTokenStorage, accTokenStrat, scopeStrat)
 
 		session := &mocks.Session{}
 		session.On("ExpiresAt").Return(time.Now().Add(time.Hour))
@@ -114,11 +120,12 @@ func TestAuthorizeImplicitHandler(t *testing.T) {
 		req := generateAuthorizeRequest(tc.responseTypes, tc.redirectUri, tc.state, tc.scope, session, client)
 		resp := NewAuthorizeResponse(tc.redirectUri)
 
-		err := handler.Handle(nil, req, resp)
+		handled, err := handler.Handle(nil, req, resp)
 
 		assert.EqualValues(t, tc.error, err, "[%s] expected err %v as error but got %v", test, tc.error, err)
+		assert.EqualValues(t, tc.handled, handled, "[%s] expected handled is %v but got %v", test, tc.handled, handled)
 
-		if tc.error == nil {
+		if tc.error == nil && tc.handled {
 			assert.EqualValues(t, "test.token", resp.GetQuery("access_token"), "[%s] expected code in response '%v' but got '%v'", test, "test.token", resp.GetQuery("access_token"))
 			assert.EqualValues(t, tc.state, resp.GetQuery("state"), "[%s] expected state in response '%v' but got '%v'", test, tc.state, resp.GetQuery("state"))
 			assert.EqualValues(t, tc.scope.String(), resp.GetQuery("scope"), "[%s] expected scope in response '%v' but got '%v'", test, tc.scope.String(), resp.GetQuery("scope"))
@@ -126,9 +133,8 @@ func TestAuthorizeImplicitHandler(t *testing.T) {
 			expiresInQuery, _ := strconv.ParseFloat(resp.GetQuery("expires_in"), 64)
 			assert.InDelta(t, time.Hour.Seconds(), expiresInQuery, 10, "[%s] expected expires_in in response '%d' but got '%d' with a delta of %d", test, time.Hour.Seconds(), resp.GetQuery("expires_in"), 10)
 
-			accCodeStorage.AssertNumberOfCalls(t, "CreateAccessTokenSession", 1)
-			authCodeStrat.AssertNumberOfCalls(t, "Generate", 1)
+			accTokenStorage.AssertNumberOfCalls(t, "CreateAccessTokenSession", 1)
+			accTokenStrat.AssertNumberOfCalls(t, "Generate", 1)
 		}
 	}
-
 }

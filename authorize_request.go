@@ -81,33 +81,3 @@ func DecodeAuthorizeRequest(storage ClientStorage) RequestDecoder {
 		}, nil
 	}
 }
-
-//func (r *AuthorizeRequest) HasSession() bool {
-//	return r.Session != nil
-//}
-//
-//type authorizeRequestWitSessionResolver struct {
-//	defaultRequest  *AuthorizeRequest
-//	sessionResolver SessionResolverFunc
-//}
-//
-//func (rd *authorizeRequestWitSessionResolver) DecodeRequest(ctx context.Context, r *http.Request) (Request, error) {
-//	req, err := rd.defaultRequest.DecodeRequest(ctx, r)
-//	if err != nil || req == nil {
-//		return nil, err
-//	}
-//
-//	authReq := req.(*AuthorizeRequest)
-//	authReq.Session, err = rd.sessionResolver(ctx, r)
-//	if err != nil {
-//		return nil, ErrServerError
-//	}
-//	return authReq, nil
-//}
-//
-//func NewAuthorizeRequestDecoder(sessionResolver SessionResolverFunc) RequestDecoder {
-//	return &authorizeRequestWitSessionResolver{
-//		defaultRequest:  &AuthorizeRequest{},
-//		sessionResolver: sessionResolver,
-//	}
-//}

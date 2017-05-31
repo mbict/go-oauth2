@@ -30,10 +30,11 @@ func (h *ResourceOwnerHandler) Handle(ctx context.Context, req *ResourceOwnerReq
 	}
 	expiresIn := time.Until(req.Session().ExpiresAt())
 
-	resp := &AccessTokenResponse{
-		AccessToken: token,
-		TokenType:   "resource_owner",
-		ExpiresIn:   expiresIn,
+	resp := &accessTokenResponse{
+		accessToken: token,
+		tokenType:   "resource_owner",
+		expiresIn:   expiresIn,
+		data:        make(map[string]interface{}),
 	}
 
 	return resp, nil

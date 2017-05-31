@@ -11,7 +11,7 @@ type Client interface {
 	ClientSecret() string
 	Name() string
 	RedirectUri() []string
-	GrantTypes() []GrantType
+	GrantTypes() GrantTypes
 	ResponseTypes() ResponseTypes
 	Scope() Scope
 }
@@ -24,7 +24,7 @@ type Code interface {
 	State() string
 }
 
-//type TokenType string
+//type tokenType string
 //
 //const (
 //	REFRESH_TOKEN = "refresh_token"
@@ -35,11 +35,32 @@ type Token interface {
 	ClientId() ClientId
 	Token() string
 	Scope() Scope
-	//	Type() TokenType
+	//	Type() tokenType
 	Session() Session
 }
 
 type GrantType string
+type GrantTypes []GrantType
+
+func (gts GrantTypes) Contains(grantType GrantType) bool {
+	for _, rt := range gts {
+		if rt == grantType {
+			return true
+		}
+	}
+	return false
+}
+
+func (gts GrantTypes) String() string {
+	res := bytes.NewBuffer(nil)
+	for i, gt := range gts {
+		if i != 0 {
+			res.WriteByte(' ')
+		}
+		res.WriteString(string(gt))
+	}
+	return res.String()
+}
 
 const (
 	PASSWORD           = "password"

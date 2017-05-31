@@ -11,11 +11,11 @@ type AuthorizeCodeStorage struct {
 }
 
 // CreateAuthorizeCodeSession provides a mock function with given fields: ctx, code, req
-func (_m *AuthorizeCodeStorage) CreateAuthorizeCodeSession(ctx context.Context, code string, req oauth2.Request) error {
+func (_m *AuthorizeCodeStorage) CreateAuthorizeCodeSession(ctx context.Context, code string, req oauth2.AuthorizeRequest) error {
 	ret := _m.Called(ctx, code, req)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, oauth2.Request) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, oauth2.AuthorizeRequest) error); ok {
 		r0 = rf(ctx, code, req)
 	} else {
 		r0 = ret.Error(0)
@@ -46,15 +46,15 @@ func (_m *AuthorizeCodeStorage) DeleteAuthorizeCodeSession(ctx context.Context, 
 }
 
 // GetAuthorizeCodeSession provides a mock function with given fields: ctx, code
-func (_m *AuthorizeCodeStorage) GetAuthorizeCodeSession(ctx context.Context, code string) (oauth2.Code, error) {
+func (_m *AuthorizeCodeStorage) GetAuthorizeCodeSession(ctx context.Context, code string) (oauth2.AuthorizeRequest, error) {
 	ret := _m.Called(ctx, code)
 
-	var r0 oauth2.Code
-	if rf, ok := ret.Get(0).(func(context.Context, string) oauth2.Code); ok {
+	var r0 oauth2.AuthorizeRequest
+	if rf, ok := ret.Get(0).(func(context.Context, string) oauth2.AuthorizeRequest); ok {
 		r0 = rf(ctx, code)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(oauth2.Code)
+			r0 = ret.Get(0).(oauth2.AuthorizeRequest)
 		}
 	}
 

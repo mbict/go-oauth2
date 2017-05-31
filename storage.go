@@ -12,6 +12,12 @@ var (
 	ErrTokenNotFound   = errors.New("token not found")
 )
 
+type Oauth2Storage interface {
+	TokenStorage
+	ClientStorage
+	UserStorage
+}
+
 type TokenStorage interface {
 	AuthorizeCodeStorage
 	AccessTokenStorage
@@ -19,20 +25,20 @@ type TokenStorage interface {
 }
 
 type AuthorizeCodeStorage interface {
-	CreateAuthorizeCodeSession(ctx context.Context, code string, req Request) error
-	GetAuthorizeCodeSession(ctx context.Context, code string) (Code, error)
+	CreateAuthorizeCodeSession(ctx context.Context, code string, req AuthorizeRequest) error
+	GetAuthorizeCodeSession(ctx context.Context, code string) (AuthorizeRequest, error)
 	DeleteAuthorizeCodeSession(ctx context.Context, code string) (bool, error)
 }
 
 type AccessTokenStorage interface {
 	CreateAccessTokenSession(ctx context.Context, signature string, req Request) error
-	GetAccessTokenSession(ctx context.Context, signature string) (Token, error)
+	GetAccessTokenSession(ctx context.Context, signature string) (Request, error)
 	DeleteAccessTokenSession(ctx context.Context, signature string) (bool, error)
 }
 
 type RefreshTokenStorage interface {
 	CreateRefreshTokenSession(ctx context.Context, signature string, req Request) error
-	GetRefreshTokenSession(ctx context.Context, signature string) (Token, error)
+	GetRefreshTokenSession(ctx context.Context, signature string) (Request, error)
 	DeleteRefreshTokenSession(ctx context.Context, signature string) (bool, error)
 }
 

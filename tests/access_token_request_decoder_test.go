@@ -99,8 +99,8 @@ func TestAccessTokenRequestDecoder(t *testing.T) {
 
 		//success path
 		if tc.error == nil {
-			assert.IsType(t, req, &AccessTokenRequest{}, "[%s] expected reqest to be type of AccessTokenRequest but got %T", test, req)
-			if ar, ok := req.(*AccessTokenRequest); ok == true {
+			assert.Implements(t, (*AccessTokenRequest)(nil), req, "[%s] expected request to be type of AccessTokenRequest but got %T", test, req)
+			if ar, ok := req.(AccessTokenRequest); ok == true {
 				assert.EqualValues(t, tc.clientId, ar.Client().ClientId(), "[%s] expected client id '%s' but got '%s'", test, tc.clientId, ar.Client().ClientId())
 				assert.EqualValues(t, tc.code, ar.Code(), "[%s] expected code '%s' but got '%s'", test, tc.code, ar.Code())
 				assert.EqualValues(t, tc.redirectUri, ar.RedirectUri().String(), "[%s] redirect uri '%s' but got '%s'", test, tc.redirectUri, ar.RedirectUri().String())

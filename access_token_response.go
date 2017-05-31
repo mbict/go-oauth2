@@ -7,20 +7,47 @@ import (
 	"time"
 )
 
-type AccessTokenResponse struct {
-	AccessToken  string
-	TokenType    string
-	ExpiresIn    time.Duration
-	RefreshToken string
+type AccessTokenResponse interface {
+	Response
 
-	Data map[string]interface{}
+	AccessToken() string
+	TokenType() string
+	ExpiresIn() time.Duration
+	RefreshToken() string
+
+	AddData(key string, value interface{})
 }
 
-func (r *AccessTokenResponse) AddData(key string, value interface{}) {
-	r.Data[key] = value
+type accessTokenResponse struct {
+	accessToken  string
+	tokenType    string
+	expiresIn    time.Duration
+	refreshToken string
+
+	data map[string]interface{}
 }
 
-func (r *AccessTokenResponse) EncodeResponse(_ context.Context, rw http.ResponseWriter) error {
+func (r *accessTokenResponse) AccessToken() string {
+	return r.accessToken
+}
+
+func (r *accessTokenResponse) TokenType() string {
+	return r.tokenType
+}
+
+func (r *accessTokenResponse) ExpiresIn() time.Duration {
+	return r.expiresIn
+}
+
+func (r *accessTokenResponse) RefreshToken() string {
+	return r.refreshToken
+}
+
+func (r *accessTokenResponse) AddData(key string, value interface{}) {
+	r.data[key] = value
+}
+
+func (r *accessTokenResponse) EncodeResponse(_ context.Context, rw http.ResponseWriter) error {
 	rw.Header().Set("Content-Type", "application/json;charset=UTF-8")
 	rw.Header().Set("Cache-Control", "no-store")
 	rw.Header().Set("Pragma", "no-cache")
@@ -30,19 +57,19 @@ func (r *AccessTokenResponse) EncodeResponse(_ context.Context, rw http.Response
 	return jenc.Encode(r.toMap())
 }
 
-func (r *AccessTokenResponse) toMap() map[string]interface{} {
+func (r *accessTokenResponse) toMap() map[string]interface{} {
 	data := make(map[string]interface{})
 
-	data["access_token"] = r.AccessToken
-	data["token_type"] = r.TokenType
-	data["expires_in"] = int(r.ExpiresIn.Seconds())
+	data["access_token"] = r.accessToken
+	data["token_type"] = r.tokenType
+	data["expires_in"] = int(r.expiresIn.Seconds())
 
-	if r.RefreshToken != "" {
-		data["refresh_token"] = r.RefreshToken
+	if r.refreshToken != "" {
+		data["refresh_token"] = r.refreshToken
 	}
 
 	//copy data into map
-	for k, v := range r.Data {
+	for k, v := range r.data {
 		data[k] = v
 	}
 

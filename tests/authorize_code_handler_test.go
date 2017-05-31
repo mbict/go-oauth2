@@ -21,12 +21,14 @@ func TestAuthorizeCodeHandler(t *testing.T) {
 		error               error
 		errTokenStrat       error
 		errTokenStore       error
+		handled             bool //if the handler successfully processed the request
 	}{
-		//Failures
+		//Ignored
 		"token response type mismatch": {
 			responseTypes: ResponseTypes{TOKEN},
-			error:         ErrInvalidRequest,
 		},
+
+		//Failures
 		"unsupported response type by client": {
 			responseTypes:       ResponseTypes{CODE},
 			clientResponseTypes: ResponseTypes{TOKEN},
@@ -68,6 +70,7 @@ func TestAuthorizeCodeHandler(t *testing.T) {
 		"minimal": {
 			responseTypes:       ResponseTypes{CODE},
 			clientResponseTypes: ResponseTypes{CODE},
+			handled:             true,
 		},
 
 		"with redirect": {
@@ -75,6 +78,7 @@ func TestAuthorizeCodeHandler(t *testing.T) {
 			clientResponseTypes: ResponseTypes{CODE},
 			redirectUri:         "http://test.com/foo",
 			clientRedirectUri:   []string{"http://test.com/foo"},
+			handled:             true,
 		},
 
 		"with scope": {
@@ -82,12 +86,14 @@ func TestAuthorizeCodeHandler(t *testing.T) {
 			clientResponseTypes: ResponseTypes{CODE},
 			scope:               Scope{"foo"},
 			clientScope:         Scope{"foo"},
+			handled:             true,
 		},
 
 		"with state": {
 			responseTypes:       ResponseTypes{CODE},
 			clientResponseTypes: ResponseTypes{CODE},
 			state:               "12345",
+			handled:             true,
 		},
 	}
 
@@ -112,11 +118,12 @@ func TestAuthorizeCodeHandler(t *testing.T) {
 		req := generateAuthorizeRequest(tc.responseTypes, tc.redirectUri, tc.state, tc.scope, session, client)
 		resp := NewAuthorizeResponse(tc.redirectUri)
 
-		err := handler.Handle(nil, req, resp)
+		handled, err := handler.Handle(nil, req, resp)
 
 		assert.EqualValues(t, tc.error, err, "[%s] expected err %v as error but got %v", test, tc.error, err)
+		assert.EqualValues(t, tc.handled, handled, "[%s] expected handled is %v but got %v", test, tc.handled, handled)
 
-		if tc.error == nil {
+		if tc.error == nil && tc.handled {
 			assert.EqualValues(t, "test.token", resp.GetQuery("code"), "[%s] expected code in response '%v' but got '%v'", test, "test.token", resp.GetQuery("code"))
 			assert.EqualValues(t, tc.state, resp.GetQuery("state"), "[%s] expected state in response '%v' but got '%v'", test, tc.state, resp.GetQuery("state"))
 
@@ -124,7 +131,6 @@ func TestAuthorizeCodeHandler(t *testing.T) {
 			authCodeStrat.AssertNumberOfCalls(t, "Generate", 1)
 		}
 	}
-
 }
 
 func generateAuthorizeRequest(responseTypes ResponseTypes, redirectUrl string, state string, grantedScopes Scope, session Session, client Client) AuthorizeRequest {

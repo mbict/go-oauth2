@@ -46,15 +46,15 @@ func (_m *AccessTokenStorage) DeleteAccessTokenSession(ctx context.Context, sign
 }
 
 // GetAccessTokenSession provides a mock function with given fields: ctx, signature
-func (_m *AccessTokenStorage) GetAccessTokenSession(ctx context.Context, signature string) (oauth2.Token, error) {
+func (_m *AccessTokenStorage) GetAccessTokenSession(ctx context.Context, signature string) (oauth2.Request, error) {
 	ret := _m.Called(ctx, signature)
 
-	var r0 oauth2.Token
-	if rf, ok := ret.Get(0).(func(context.Context, string) oauth2.Token); ok {
+	var r0 oauth2.Request
+	if rf, ok := ret.Get(0).(func(context.Context, string) oauth2.Request); ok {
 		r0 = rf(ctx, signature)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(oauth2.Token)
+			r0 = ret.Get(0).(oauth2.Request)
 		}
 	}
 

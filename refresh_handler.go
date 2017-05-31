@@ -6,7 +6,6 @@ import (
 )
 
 type RefreshHandler struct {
-	clients       ClientStorage
 	refreshTokens RefreshTokenStorage
 	accessTokens  AccessTokenStorage
 }
@@ -31,19 +30,19 @@ func (f *RefreshHandler) Handle(ctx context.Context, req *RefreshRequest) (Respo
 	//create a new refresh token if the scope differs from the stored refresh scope
 	refreshToken := ""
 
-	resp := &AccessTokenResponse{
-		AccessToken:  accessToken,
-		TokenType:    "resource_owner",
-		ExpiresIn:    expiresIn,
-		RefreshToken: refreshToken,
+	resp := &accessTokenResponse{
+		accessToken:  accessToken,
+		tokenType:    "resource_owner",
+		expiresIn:    expiresIn,
+		refreshToken: refreshToken,
+		data:         make(map[string]interface{}),
 	}
 
 	return resp, nil
 }
 
-func NewRefreshHandler(clients ClientStorage, refreshTokens RefreshTokenStorage, accessTokens AccessTokenStorage) *RefreshHandler {
+func NewRefreshHandler(refreshTokens RefreshTokenStorage, accessTokens AccessTokenStorage) *RefreshHandler {
 	return &RefreshHandler{
-		clients:       clients,
 		refreshTokens: refreshTokens,
 		accessTokens:  accessTokens,
 	}

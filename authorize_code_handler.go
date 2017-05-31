@@ -10,35 +10,35 @@ type AuthorizeCodeHandler struct {
 	scopeStrategy         ScopeStrategy
 }
 
-func (h *AuthorizeCodeHandler) Handle(ctx context.Context, req AuthorizeRequest, resp AuthorizeResponse) error {
+func (h *AuthorizeCodeHandler) Handle(ctx context.Context, req AuthorizeRequest, resp AuthorizeResponse) (bool, error) {
 	//will only be triggered when response type is code
 	if !req.ResponseTypes().Contains(CODE) {
-		return ErrInvalidRequest
+		return false, nil
 	}
 
 	if !req.Client().ResponseTypes().Contains(CODE) {
-		return ErrUnsupportedResponseType
+		return false, ErrUnsupportedResponseType
 	}
 
 	// validate redirect uri is registered for this client
 	if req.RedirectUri() != nil && !hasRedirectUri(req.Client().RedirectUri(), req.RedirectUri().String()) {
-		return ErrInvalidRedirectUri
+		return false, ErrInvalidRedirectUri
 	}
 
 	//check if all the granted scopes belong to the client
 	if !h.scopeStrategy(req.Client().Scope(), req.GrantedScopes()...) {
-		return ErrInvalidScope
+		return false, ErrInvalidScope
 	}
 
 	//generate authorization code
 	signature, token, err := h.authorizeCodeStrategy.Generate(req)
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	//store signature
 	if err := h.codeStorage.CreateAuthorizeCodeSession(ctx, signature, req); err != nil {
-		return err
+		return false, err
 	}
 
 	resp.AddQuery("code", token)
@@ -46,7 +46,7 @@ func (h *AuthorizeCodeHandler) Handle(ctx context.Context, req AuthorizeRequest,
 		resp.AddQuery("state", req.State())
 	}
 
-	return nil
+	return true, nil
 }
 
 func NewAuthorizeCodeHandler(storage AuthorizeCodeStorage, authorizeCodeStrategy TokenStrategy, scopeStrategy ScopeStrategy) *AuthorizeCodeHandler {

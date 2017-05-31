@@ -29,10 +29,11 @@ func (h *ClientCredentialsHandler) Handle(ctx context.Context, req *ClientCreden
 	}
 	expiresIn := time.Until(req.Session().ExpiresAt())
 
-	resp := &AccessTokenResponse{
-		AccessToken: token,
-		TokenType:   "Bearer",
-		ExpiresIn:   expiresIn,
+	resp := &accessTokenResponse{
+		accessToken: token,
+		tokenType:   "Bearer",
+		expiresIn:   expiresIn,
+		data:        make(map[string]interface{}),
 	}
 
 	return resp, nil

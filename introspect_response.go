@@ -12,7 +12,7 @@ type IntrospectResponse struct {
 	Scope    Scope
 	ClientId ClientId
 	Username string
-	//TokenType TokenType
+	//tokenType tokenType
 
 	Data map[string]interface{}
 }

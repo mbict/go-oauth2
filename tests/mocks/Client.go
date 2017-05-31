@@ -38,15 +38,15 @@ func (_m *Client) ClientSecret() string {
 }
 
 // GrantTypes provides a mock function with given fields:
-func (_m *Client) GrantTypes() []oauth2.GrantType {
+func (_m *Client) GrantTypes() oauth2.GrantTypes {
 	ret := _m.Called()
 
-	var r0 []oauth2.GrantType
-	if rf, ok := ret.Get(0).(func() []oauth2.GrantType); ok {
+	var r0 oauth2.GrantTypes
+	if rf, ok := ret.Get(0).(func() oauth2.GrantTypes); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]oauth2.GrantType)
+			r0 = ret.Get(0).(oauth2.GrantTypes)
 		}
 	}
 

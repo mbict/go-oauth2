@@ -12,35 +12,35 @@ type ImplicitAuthorizeHandler struct {
 	scopeStrategy       ScopeStrategy
 }
 
-func (h *ImplicitAuthorizeHandler) Handle(ctx context.Context, req AuthorizeRequest, resp AuthorizeResponse) error {
+func (h *ImplicitAuthorizeHandler) Handle(ctx context.Context, req AuthorizeRequest, resp AuthorizeResponse) (bool, error) {
 	//will only be triggered when response type is code
 	if !req.ResponseTypes().Contains(TOKEN) {
-		return ErrInvalidRequest
+		return false, nil
 	}
 
 	if !req.Client().ResponseTypes().Contains(TOKEN) {
-		return ErrUnsupportedResponseType
+		return false, ErrUnsupportedResponseType
 	}
 
 	// validate redirect uri is registered for this client
 	if req.RedirectUri() != nil && !hasRedirectUri(req.Client().RedirectUri(), req.RedirectUri().String()) {
-		return ErrInvalidRedirectUri
+		return false, ErrInvalidRedirectUri
 	}
 
 	//check if all the granted scopes belong to the client
 	if !h.scopeStrategy(req.Client().Scope(), req.GrantedScopes()...) {
-		return ErrInvalidScope
+		return false, ErrInvalidScope
 	}
 
 	//we create a new access token
 	signature, token, err := h.accessTokenStrategy.Generate(req)
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	//store signature
 	if err := h.accessTokenStorage.CreateAccessTokenSession(ctx, signature, req); err != nil {
-		return err
+		return false, err
 	}
 
 	expiresIn := strconv.Itoa(int(time.Until(req.Session().ExpiresAt()).Seconds()))
@@ -54,7 +54,7 @@ func (h *ImplicitAuthorizeHandler) Handle(ctx context.Context, req AuthorizeRequ
 		resp.AddQuery("scope", req.GrantedScopes().String())
 	}
 
-	return nil
+	return true, nil
 }
 
 func NewImplicitAuthorizeHandler(accessTokenStorage AccessTokenStorage, accessTokenStrategy TokenStrategy, scopeStrategy ScopeStrategy) *ImplicitAuthorizeHandler {

@@ -9,4 +9,5 @@ mockery -dir "../" -name RefreshTokenStorage
 mockery -dir "../" -name TokenStrategy
 mockery -dir "../" -name Request
 mockery -dir "../" -name AuthorizeRequest
+mockery -dir "../" -name AccessTokenRequest
 mockery -dir "../" -name Session
