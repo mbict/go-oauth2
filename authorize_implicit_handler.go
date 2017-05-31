@@ -2,67 +2,65 @@ package oauth2
 
 import (
 	"context"
+	"strconv"
 	"time"
 )
 
 type ImplicitAuthorizeHandler struct {
-	clients              ClientStorage
-	accessTokens         AccessTokenStorage
-	authenticateStrategy AuthenticateStrategyFunc
+	accessTokenStorage  AccessTokenStorage
+	accessTokenStrategy TokenStrategy
+	scopeStrategy       ScopeStrategy
 }
 
-func (f *ImplicitAuthorizeHandler) Handle(ctx context.Context, req *AuthorizeRequest) (Response, error) {
-	if !req.ResponseTypes.Contains(TOKEN) {
-		return nil, ErrInvalidRequest
+func (h *ImplicitAuthorizeHandler) Handle(ctx context.Context, req AuthorizeRequest, resp AuthorizeResponse) (bool, error) {
+	//will only be triggered when response type is code
+	if !req.ResponseTypes().Contains(TOKEN) {
+		return false, nil
 	}
 
-	//find  client
-	client, err := f.clients.GetClient(req.ClientId)
+	if !req.Client().ResponseTypes().Contains(TOKEN) {
+		return false, ErrUnsupportedResponseType
+	}
+
+	// validate redirect uri is registered for this client
+	if req.RedirectUri() != nil && !hasRedirectUri(req.Client().RedirectUri(), req.RedirectUri().String()) {
+		return false, ErrInvalidRedirectUri
+	}
+
+	//check if all the granted scopes belong to the client
+	if !h.scopeStrategy(req.Client().Scope(), req.GrantedScopes()...) {
+		return false, ErrInvalidScope
+	}
+
+	//we create a new access token
+	signature, token, err := h.accessTokenStrategy.Generate(req)
 	if err != nil {
-		return nil, ErrUnauthorizedClient
+		return false, err
 	}
 
-	// validate redirect uri is registered
-	if !hasRedirectUri(client.RedirectUri(), req.RedirectUri.String()) {
-		return nil, ErrInvalidRequest
+	//store signature
+	if err := h.accessTokenStorage.CreateAccessTokenSession(ctx, signature, req); err != nil {
+		return false, err
 	}
 
-	//check if all the scopes are there
-	if !client.Scope().Has(req.Scope) {
-		return nil, ErrInvalidScope
+	expiresIn := strconv.Itoa(int(time.Until(req.Session().ExpiresAt()).Seconds()))
+	resp.AddQuery("access_token", token)
+	resp.AddQuery("expires_in", expiresIn)
+	if len(req.State()) > 0 {
+		resp.AddQuery("state", req.State())
 	}
 
-	//we need an authenticated session
-	if req.HasSession() == false {
-		resp, err := f.authenticateStrategy(ctx, req)
-		if err != nil || resp != nil {
-			return resp, err
-		}
+	if len(req.GrantedScopes()) > 0 {
+		resp.AddQuery("scope", req.GrantedScopes().String())
 	}
 
-	if req.HasSession() == false {
-		return nil, ErrAuthenticateFailed
-	}
-
-	//ok we create a new access token
-	accessToken := ""
-	expiresIn := time.Hour * 24
-
-	resp := &ImplicitAuthorizeResponse{
-		AccessToken: accessToken,
-		TokenType:   "implicit_authorization",
-		ExpiresIn:   expiresIn,
-		Scope:       req.Scope,
-		State:       req.State,
-	}
-
-	return resp, nil
+	return true, nil
 }
 
-func NewImplicitAuthorizeHandler(clients ClientStorage, accessTokens AccessTokenStorage, authenticateStrategy AuthenticateStrategyFunc) *ImplicitAuthorizeHandler {
+func NewImplicitAuthorizeHandler(accessTokenStorage AccessTokenStorage, accessTokenStrategy TokenStrategy, scopeStrategy ScopeStrategy) *ImplicitAuthorizeHandler {
 	return &ImplicitAuthorizeHandler{
-		clients:              clients,
-		accessTokens:         accessTokens,
-		authenticateStrategy: authenticateStrategy,
+		accessTokenStorage:  accessTokenStorage,
+		accessTokenStrategy: accessTokenStrategy,
+		scopeStrategy:       scopeStrategy,
 	}
 }

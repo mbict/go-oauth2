@@ -5,60 +5,54 @@ import (
 )
 
 type AuthorizeCodeHandler struct {
-	clients              ClientStorage
-	codes                AuthorizeCodeStorage
-	authenticateStrategy AuthenticateStrategyFunc
+	codeStorage           AuthorizeCodeStorage
+	authorizeCodeStrategy TokenStrategy
+	scopeStrategy         ScopeStrategy
 }
 
-func (f *AuthorizeCodeHandler) Handle(ctx context.Context, req *AuthorizeRequest) (Response, error) {
-	if !req.ResponseTypes.Contains(CODE) {
-		return nil, ErrInvalidRequest
+func (h *AuthorizeCodeHandler) Handle(ctx context.Context, req AuthorizeRequest, resp AuthorizeResponse) (bool, error) {
+	//will only be triggered when response type is code
+	if !req.ResponseTypes().Contains(CODE) {
+		return false, nil
 	}
 
-	//find client
-	client, err := f.clients.GetClient(req.ClientId)
-	if err != nil {
-		return nil, ErrUnauthorizedClient
+	if !req.Client().ResponseTypes().Contains(CODE) {
+		return false, ErrUnsupportedResponseType
 	}
 
-	// validate redirect uri is registered
-	if !hasRedirectUri(client.RedirectUri(), req.RedirectUri.String()) {
-		return nil, ErrInvalidRequest
+	// validate redirect uri is registered for this client
+	if req.RedirectUri() != nil && !hasRedirectUri(req.Client().RedirectUri(), req.RedirectUri().String()) {
+		return false, ErrInvalidRedirectUri
 	}
 
-	//check if all the scopes are there
-	if len(req.Scope) > 0 && !client.Scope().Has(req.Scope) {
-		return nil, ErrInvalidScope
-	}
-
-	//we need an authenticated session
-	if req.HasSession() == false {
-		resp, err := f.authenticateStrategy(ctx, req)
-		if err != nil || resp != nil {
-			return resp, err
-		}
-	}
-
-	if req.HasSession() == false {
-		return nil, ErrAuthenticateFailed
+	//check if all the granted scopes belong to the client
+	if !h.scopeStrategy(req.Client().Scope(), req.GrantedScopes()...) {
+		return false, ErrInvalidScope
 	}
 
 	//generate authorization code
-	code := "testcode"
-
-	resp := &AuthorizeCodeResponse{
-		Code:        code,
-		State:       req.State,
-		RedirectUri: req.RedirectUri,
+	signature, token, err := h.authorizeCodeStrategy.Generate(req)
+	if err != nil {
+		return false, err
 	}
 
-	return resp, nil
+	//store signature
+	if err := h.codeStorage.CreateAuthorizeCodeSession(ctx, signature, req); err != nil {
+		return false, err
+	}
+
+	resp.AddQuery("code", token)
+	if len(req.State()) > 0 {
+		resp.AddQuery("state", req.State())
+	}
+
+	return true, nil
 }
 
-func NewAuthorizeCodeHandler(clients ClientStorage, codes AuthorizeCodeStorage, authenticateStrategy AuthenticateStrategyFunc) *AuthorizeCodeHandler {
+func NewAuthorizeCodeHandler(storage AuthorizeCodeStorage, authorizeCodeStrategy TokenStrategy, scopeStrategy ScopeStrategy) *AuthorizeCodeHandler {
 	return &AuthorizeCodeHandler{
-		clients:              clients,
-		codes:                codes,
-		authenticateStrategy: authenticateStrategy,
+		codeStorage:           storage,
+		authorizeCodeStrategy: authorizeCodeStrategy,
+		scopeStrategy:         scopeStrategy,
 	}
 }

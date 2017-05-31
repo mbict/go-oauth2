@@ -6,39 +6,42 @@ import (
 )
 
 type ClientCredentialsHandler struct {
-	clients      ClientStorage
-	accessTokens AccessTokenStorage
+	accessTokenStorage  AccessTokenStorage
+	accessTokenStrategy TokenStrategy
 }
 
-func (f *ClientCredentialsHandler) Handle(ctx context.Context, req *ClientCredentialsRequest) (Response, error) {
-
-	//authenticate client credentials
-	client, err := f.clients.AuthenticateClient(req.clientId, req.clientSecret)
-	if err != nil {
-		return nil, ErrUnauthorizedClient
-	}
+func (h *ClientCredentialsHandler) Handle(ctx context.Context, req *ClientCredentialsRequest) (Response, error) {
 
 	//check if all the scopes are there
-	if !client.Scope().Has(req.scope) {
-		return nil, ErrInvalidScope
-	}
+	//if !client.Scope().Has(req.scope) {
+	//	return nil, ErrInvalidScope
+	//}
 
 	//create new access token
-	token := ""
-	expiresIn := time.Hour * 24
+	signature, token, err := h.accessTokenStrategy.Generate(req)
+	if err != nil {
+		return nil, err
+	}
 
-	resp := &AccessTokenResponse{
-		AccessToken: token,
-		TokenType:   "resource_owner",
-		ExpiresIn:   expiresIn,
+	//store signature
+	if err := h.accessTokenStorage.CreateAccessTokenSession(ctx, signature, req); err != nil {
+		return nil, err
+	}
+	expiresIn := time.Until(req.Session().ExpiresAt())
+
+	resp := &accessTokenResponse{
+		accessToken: token,
+		tokenType:   "Bearer",
+		expiresIn:   expiresIn,
+		data:        make(map[string]interface{}),
 	}
 
 	return resp, nil
 }
 
-func NewClientCredentialsHandler(clients ClientStorage, accessTokens AccessTokenStorage) *ClientCredentialsHandler {
+func NewClientCredentialsHandler(accessTokenStorage AccessTokenStorage, accessTokenStrategy TokenStrategy) *ClientCredentialsHandler {
 	return &ClientCredentialsHandler{
-		clients:      clients,
-		accessTokens: accessTokens,
+		accessTokenStorage:  accessTokenStorage,
+		accessTokenStrategy: accessTokenStrategy,
 	}
 }

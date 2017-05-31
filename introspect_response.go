@@ -8,11 +8,11 @@ import (
 )
 
 type IntrospectResponse struct {
-	Active    bool
-	Scope     Scope
-	ClientId  ClientId
-	Username  string
-	TokenType TokenType
+	Active   bool
+	Scope    Scope
+	ClientId ClientId
+	Username string
+	//tokenType tokenType
 
 	Data map[string]interface{}
 }
@@ -39,9 +39,9 @@ func (r *IntrospectResponse) toMap() map[string]interface{} {
 			data["scope"] = r.Scope
 		}
 
-		if r.TokenType != "" {
-			data["token_type"] = r.TokenType
-		}
+		//if r.TokenType != "" {
+		//	data["token_type"] = r.TokenType
+		//}
 
 		if r.ClientId != "" {
 			data["client_id"] = r.ClientId

@@ -3,6 +3,18 @@ package oauth2
 import "errors"
 
 var (
+	// ErrSessionExpired is used when a session is expired
+	ErrSessionExpired = errors.New("session expired")
+
+	// ErrInvalidSignature is used when a malformed signature is used
+	ErrInvalidSignature = errors.New("invalid signature")
+
+	// ErrInvalidToken is used when a request does not provide a token
+	ErrInvalidToken = errors.New("invalid token")
+
+	// ErrInvalidToken is used when a request does not provide a token
+	ErrInvalidCode = errors.New("invalid code")
+
 	// ErrAuthenticateFailed is used when an user could not be authenticated with username and password.
 	ErrAuthenticateFailed = errors.New("authenticate failed")
 
@@ -22,6 +34,10 @@ var (
 	// The authorization server does not support obtaining an
 	// authorization code using this method.
 	ErrUnsupportedResponseType = errors.New("unsupported_response_type")
+
+	// The authorization server does not support obtaining an
+	// access token using this method.
+	ErrUnsupportedGrantType = errors.New("unsupported_grant_type")
 
 	// The requested scope is invalid, unknown, or malformed.
 	ErrInvalidScope = errors.New("invalid_scope")
@@ -43,19 +59,10 @@ var (
 	// Thee authorization server does not support
 	// the revocation of the presented token type.
 	ErrUnsupportedTokenType = errors.New("unsupported_token_type")
+
+	ErrInvalidRedirectUri = errors.New("invalid_redirect_uri")
 )
 
 type errorer interface {
 	error() error
-}
-
-type ErrorResponse struct {
-	Error            string
-	ErrorDescription string
-	ErrorUri         string
-	State            string //optional
-}
-
-func (e *ErrorResponse) error() error {
-	return nil
 }

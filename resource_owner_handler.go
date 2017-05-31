@@ -6,50 +6,44 @@ import (
 )
 
 type ResourceOwnerHandler struct {
-	clients      ClientStorage
-	users        UserStorage
-	sessions     SessionStorage
-	accessTokens AccessTokenStorage
+	userStorage         UserStorage
+	accessTokenStorage  AccessTokenStorage
+	accessTokenStrategy TokenStrategy
 }
 
-func (f *ResourceOwnerHandler) Handle(ctx context.Context, req *ResourceOwnerRequest) (Response, error) {
-	//authenticate client credentials
-	client, err := f.clients.AuthenticateClient(req.clientId, req.clientSecret)
-	if err != nil {
-		return nil, ErrUnauthorizedClient
-	}
-
-	username, err := f.users.AuthenticateUser(req.username, req.password)
-	if err != nil {
-		return nil, ErrUnauthorizedClient
-	}
+func (h *ResourceOwnerHandler) Handle(ctx context.Context, req *ResourceOwnerRequest) (Response, error) {
 
 	//check if all the scopes are there
-	if !client.Scope().Has(req.scope) {
+	if !req.Client().Scope().Has(req.GrantedScopes()) {
 		return nil, ErrInvalidScope
 	}
 
-	//create a session for the authenticated user
-	f.sessions.NewSession(client.ClientId(), username)
-
 	//create new access token
-	token := ""
-	expiresIn := time.Hour * 24
+	signature, token, err := h.accessTokenStrategy.Generate(req)
+	if err != nil {
+		return nil, err
+	}
 
-	resp := &AccessTokenResponse{
-		AccessToken: token,
-		TokenType:   "resource_owner",
-		ExpiresIn:   expiresIn,
+	//store signature
+	if err := h.accessTokenStorage.CreateAccessTokenSession(ctx, signature, req); err != nil {
+		return nil, err
+	}
+	expiresIn := time.Until(req.Session().ExpiresAt())
+
+	resp := &accessTokenResponse{
+		accessToken: token,
+		tokenType:   "resource_owner",
+		expiresIn:   expiresIn,
+		data:        make(map[string]interface{}),
 	}
 
 	return resp, nil
 }
 
-func NewResourceOwnerHandler(clients ClientStorage, users UserStorage, sessions SessionStorage, accessTokens AccessTokenStorage) *ResourceOwnerHandler {
+func NewResourceOwnerHandler(userStorage UserStorage, accessTokenStorage AccessTokenStorage, accessTokenStrategy TokenStrategy) *ResourceOwnerHandler {
 	return &ResourceOwnerHandler{
-		clients:      clients,
-		users:        users,
-		sessions:     sessions,
-		accessTokens: accessTokens,
+		userStorage:         userStorage,
+		accessTokenStorage:  accessTokenStorage,
+		accessTokenStrategy: accessTokenStrategy,
 	}
 }

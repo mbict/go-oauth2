@@ -12,18 +12,18 @@ type TokenHandler struct {
 	refreshHandler           *oauth2.RefreshHandler
 }
 
-func NewTokenHandler(clients oauth2.ClientStorage, users oauth2.UserStorage, sessions oauth2.SessionStorage, tokens oauth2.TokenStorage) oauth2.Handler {
+func NewTokenHandler(tokenStorage oauth2.TokenStorage, userStorage oauth2.UserStorage, authCodeStrategy oauth2.TokenStrategy, accessTokenStrategy oauth2.TokenStrategy, refreshTokenStrategy oauth2.TokenStrategy, scopeRefreshToken string) oauth2.Handler {
 	return &TokenHandler{
-		accessTokenHandler:       oauth2.NewAccessTokenHandler(clients, tokens, tokens, tokens),
-		resourceOwnerHandler:     oauth2.NewResourceOwnerHandler(clients, users, sessions, tokens),
-		clientCredentialsHandler: oauth2.NewClientCredentialsHandler(clients, tokens),
-		refreshHandler:           oauth2.NewRefreshHandler(clients, tokens, tokens),
+		accessTokenHandler:       oauth2.NewAccessTokenHandler(tokenStorage, tokenStorage, tokenStorage, authCodeStrategy, accessTokenStrategy, refreshTokenStrategy, scopeRefreshToken),
+		resourceOwnerHandler:     oauth2.NewResourceOwnerHandler(userStorage, tokenStorage, accessTokenStrategy),
+		clientCredentialsHandler: oauth2.NewClientCredentialsHandler(tokenStorage, accessTokenStrategy),
+		refreshHandler:           oauth2.NewRefreshHandler(tokenStorage, tokenStorage),
 	}
 }
 
 func (h *TokenHandler) Handle(ctx context.Context, req oauth2.Request) (oauth2.Response, error) {
 	switch t := req.(type) {
-	case *oauth2.AccessTokenRequest:
+	case oauth2.AccessTokenRequest:
 		return h.accessTokenHandler.Handle(ctx, t)
 	case *oauth2.ResourceOwnerRequest:
 		return h.resourceOwnerHandler.Handle(ctx, t)

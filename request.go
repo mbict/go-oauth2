@@ -1,33 +1,58 @@
 package oauth2
 
 import (
-	"context"
-	"net/http"
+	"net/url"
+	"time"
 )
 
-type RequestDecoder interface {
-	DecodeRequest(context.Context, *http.Request) (Request, error)
-}
-
 type Request interface {
-	RequestDecoder
+	RequestedAt() time.Time
+	Client() Client
+	Session() Session
+	RequestValues() url.Values
+	RequestedScopes() Scope
+	GrantedScopes() Scope
+	GrantScope(scope ...string)
 }
 
-type requestDecoder struct {
-	decoders []Request
+type request struct {
+	requestedAt     time.Time
+	client          Client
+	session         Session
+	requestValue    url.Values
+	requestedScopes Scope
+	grantedScopes   Scope
 }
 
-func (d *requestDecoder) DecodeRequest(ctx context.Context, req *http.Request) (Request, error) {
-	for _, decoder := range d.decoders {
-		if r, err := decoder.DecodeRequest(ctx, req); r != nil || err != nil {
-			return r, err
+func (r *request) RequestedAt() time.Time {
+	return r.requestedAt
+}
+
+func (r *request) Client() Client {
+	return r.client
+}
+
+func (r *request) Session() Session {
+	return r.session
+}
+
+func (r *request) RequestValues() url.Values {
+	return r.requestValue
+}
+
+func (r *request) RequestedScopes() Scope {
+	return r.requestedScopes
+}
+
+func (r *request) GrantedScopes() Scope {
+	return r.grantedScopes
+}
+
+func (r *request) GrantScope(scopes ...string) {
+	for _, scope := range scopes {
+		if r.grantedScopes.Has(Scope{scope}) == true {
+			continue
 		}
-	}
-	return nil, ErrInvalidRequest
-}
-
-func NewRequestDecoder(decoders ...Request) RequestDecoder {
-	return &requestDecoder{
-		decoders: decoders,
+		r.grantedScopes = append(r.grantedScopes, scope)
 	}
 }

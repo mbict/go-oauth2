@@ -12,11 +12,6 @@ type RevokeTokenHandler struct {
 }
 
 func (f *RevokeTokenHandler) Handle(ctx context.Context, req *RevokeTokenRequest) (Response, error) {
-	//authenticate client credentials
-	_, err := f.clients.AuthenticateClient(req.clientId, req.clientSecret)
-	if err != nil {
-		return nil, ErrUnauthorizedClient
-	}
 
 	//check if there is no unsupported toke type requested
 	if req.tokenType != "" &&
@@ -28,7 +23,7 @@ func (f *RevokeTokenHandler) Handle(ctx context.Context, req *RevokeTokenRequest
 
 	//revoke authorize code
 	if req.tokenType == "" || req.tokenType == "authorize_code" {
-		_, err := f.authorizeCodes.DeleteAuthorizeCodeSession(req.token)
+		_, err := f.authorizeCodes.DeleteAuthorizeCodeSession(ctx, req.token)
 		if err != nil && err != ErrCodeNotFound {
 			return nil, err
 		}
@@ -36,7 +31,7 @@ func (f *RevokeTokenHandler) Handle(ctx context.Context, req *RevokeTokenRequest
 
 	//revoke refresh token
 	if req.tokenType == "" || req.tokenType == "refresh_token" {
-		_, err := f.refreshTokens.DeleteRefreshTokenSession(req.token)
+		_, err := f.refreshTokens.DeleteRefreshTokenSession(ctx, req.token)
 		if err != nil && err != ErrTokenNotFound {
 			return nil, err
 		}
@@ -44,7 +39,7 @@ func (f *RevokeTokenHandler) Handle(ctx context.Context, req *RevokeTokenRequest
 
 	//revoke access token
 	if req.tokenType == "" || req.tokenType == "access_token" {
-		_, err := f.accessTokens.DeleteAccessTokenSession(req.token)
+		_, err := f.accessTokens.DeleteAccessTokenSession(ctx, req.token)
 		if err != nil && err != ErrTokenNotFound {
 			return nil, err
 		}
