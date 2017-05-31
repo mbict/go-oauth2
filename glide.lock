@@ -1,5 +1,5 @@
-hash: 1dbb4008ea7b5eec908fbae2d643354a817082633d5e19728a4bf85391fb4510
-updated: 2017-05-23T22:29:41.337907549+02:00
+hash: 7135da9086c4c38159459640bd7afb946633e0c756c21484e28878a28f8f6387
+updated: 2017-05-31T11:42:35.389474238+02:00
 imports:
 - name: github.com/davecgh/go-spew
   version: 6d212800a42e8ab5c146b8ace3490ee17e5225f9
@@ -21,5 +21,3 @@ imports:
 testImports:
 - name: github.com/vektra/mockery
   version: b6f6c13c25c3f0a17724553fa01580f328158d7a
-- name: gopkg.in/check.v1
-  version: 20d25e2804050c1cd24a7eea1e7a6447dd0e74ec

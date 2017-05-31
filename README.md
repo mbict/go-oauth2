@@ -1,4 +1,7 @@
 # Oauth2 server
+[![wercker status](https://app.wercker.com/status/3139f79047bba4750be92fa0a56b6f49/s/ "wercker status")](https://app.wercker.com/project/byKey/3139f79047bba4750be92fa0a56b6f49)
+[![Build Status](https://travis-ci.org/mbict/go-oauth2.svg?branch=master)](https://travis-ci.org/mbict/go-oauth2)
+
 An oauth2 server implementation
  
 # Why

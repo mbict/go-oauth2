@@ -7,6 +7,8 @@ build:
     - script:
         name: go get
         code: |
+          go get github.com/vektra/mockery/...
+          go get github.com/stretchr/testify
           go get github.com/Masterminds/glide
           glide install
 
