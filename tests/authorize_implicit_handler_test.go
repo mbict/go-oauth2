@@ -105,7 +105,7 @@ func TestAuthorizeImplicitHandler(t *testing.T) {
 		accTokenStorage.On("CreateAccessTokenSession", Anything, "test", Anything).Return(tc.errTokenStore)
 
 		accTokenStrat := &mocks.TokenStrategy{}
-		accTokenStrat.On("Generate", Anything).Return("test", "test.token", tc.errTokenStrat)
+		accTokenStrat.On("GenerateAccessToken", Anything, Anything).Return("test", "test.token", tc.errTokenStrat)
 
 		scopeStrat := DefaultScopeStrategy
 		handler := NewImplicitAuthorizeHandler(accTokenStorage, accTokenStrat, scopeStrat)
@@ -136,7 +136,7 @@ func TestAuthorizeImplicitHandler(t *testing.T) {
 			assert.InDelta(t, time.Hour.Seconds(), expiresInQuery, 10, "[%s] expected expires_in in response '%d' but got '%d' with a delta of %d", test, time.Hour.Seconds(), resp.GetQuery("expires_in"), 10)
 
 			accTokenStorage.AssertNumberOfCalls(t, "CreateAccessTokenSession", 1)
-			accTokenStrat.AssertNumberOfCalls(t, "Generate", 1)
+			accTokenStrat.AssertNumberOfCalls(t, "GenerateAccessToken", 1)
 		}
 	}
 }

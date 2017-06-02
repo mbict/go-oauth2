@@ -28,7 +28,6 @@ func TestAccessTokenHandler(t *testing.T) {
 		sessionRedirectUri     string     //redirect uri used in authorize code session
 		redirectUri            string     //redirect uri used in request
 		refreshTokenScope      string     //name of scope to enable refresh token creation
-		refreshTokenEnabled    bool       //refresh token generation enabled by providing a token strategy
 		scope                  Scope      //granted scope
 		error                  error      //expected error
 		token                  string     //expected token
@@ -43,6 +42,7 @@ func TestAccessTokenHandler(t *testing.T) {
 		"invalid token": {
 			clientGrantTypes: defaultGrantTypes,
 			code:             "invalid.token",
+			errAuthStrat:     ErrInvalidToken,
 			error:            ErrInvalidToken,
 		},
 		"signature code not found": {
@@ -123,24 +123,26 @@ func TestAccessTokenHandler(t *testing.T) {
 		"failure generating refresh token": {
 			clientGrantTypes:       defaultGrantTypes,
 			sessionIssuedForClient: "1",
-			code:                "ok.token",
-			sessionExpiresAt:    defaultExpireTime,
-			refreshTokenEnabled: true,
-			errRefrStrat:        ErrServerError,
-			error:               ErrServerError,
+			code:              "ok.token",
+			refreshTokenScope: "offline",
+			scope:             Scope{"offline"},
+			sessionExpiresAt:  defaultExpireTime,
+			errRefrStrat:      ErrServerError,
+			error:             ErrServerError,
 		},
 		"failure storing refresh token": {
 			clientGrantTypes:       defaultGrantTypes,
 			sessionIssuedForClient: "1",
-			code:                "ok.token",
-			sessionExpiresAt:    defaultExpireTime,
-			refreshTokenEnabled: true,
-			errRefrStore:        ErrServerError,
-			error:               ErrServerError,
+			code:              "ok.token",
+			refreshTokenScope: "offline",
+			scope:             Scope{"offline"},
+			sessionExpiresAt:  defaultExpireTime,
+			errRefrStore:      ErrServerError,
+			error:             ErrServerError,
 		},
 
 		//Success
-		"without refresh token strategy (disabled)": {
+		"without refresh token strategy (empty scope disabled)": {
 			clientGrantTypes:       defaultGrantTypes,
 			sessionIssuedForClient: "1",
 			code:             "ok.token",
@@ -156,36 +158,24 @@ func TestAccessTokenHandler(t *testing.T) {
 			sessionRedirectUri: "http://test.com/foo",
 			token:              "access.token",
 		},
-		"always issue refresh token (empty scope)": {
-			clientGrantTypes:       defaultGrantTypes,
-			sessionIssuedForClient: "1",
-			code:                "ok.token",
-			sessionExpiresAt:    defaultExpireTime,
-			refreshTokenEnabled: true,
-			refreshTokenScope:   "",
-			token:               "access.token",
-			refreshToken:        "refresh.token",
-		},
 		"no refresh token scope granted (offline scope)": {
 			clientGrantTypes:       defaultGrantTypes,
 			sessionIssuedForClient: "1",
-			code:                "ok.token",
-			sessionExpiresAt:    defaultExpireTime,
-			refreshTokenEnabled: true,
-			refreshTokenScope:   "offline",
-			scope:               Scope{"foo"},
-			token:               "access.token",
+			code:              "ok.token",
+			sessionExpiresAt:  defaultExpireTime,
+			refreshTokenScope: "offline",
+			scope:             Scope{"foo"},
+			token:             "access.token",
 		},
 		"with refresh token scope granted (offline scope)": {
 			clientGrantTypes:       defaultGrantTypes,
 			sessionIssuedForClient: "1",
-			code:                "ok.token",
-			sessionExpiresAt:    defaultExpireTime,
-			refreshTokenEnabled: true,
-			scope:               Scope{"offline"},
-			refreshTokenScope:   "offline",
-			token:               "access.token",
-			refreshToken:        "refresh.token",
+			code:              "ok.token",
+			sessionExpiresAt:  defaultExpireTime,
+			scope:             Scope{"offline"},
+			refreshTokenScope: "offline",
+			token:             "access.token",
+			refreshToken:      "refresh.token",
 		},
 	}
 
@@ -204,32 +194,18 @@ func TestAccessTokenHandler(t *testing.T) {
 		authCodeStorage.On("GetAuthorizeCodeSession", Anything, Anything).Return(reqSession, tc.errAuthStore)
 		authCodeStorage.On("DeleteAuthorizeCodeSession", Anything, Anything).Return(true, tc.errAuthStoreDelete)
 
-		authCodeStrat := &mocks.TokenStrategy{}
-		authCodeStrat.On("Signature", "invalid.token").Return("", ErrInvalidToken)
-		authCodeStrat.On("Signature", Anything).Return(func(in string) string { return in }, nil)
-
 		accTokenStorage := &mocks.AccessTokenStorage{}
 		accTokenStorage.On("CreateAccessTokenSession", Anything, Anything, Anything).Return(tc.errAccStore)
-
-		accTokenStrat := &mocks.TokenStrategy{}
-		accTokenStrat.On("Generate", Anything).Return("access", "access.token", tc.errAccStrat)
 
 		refreshTokenStorage := &mocks.RefreshTokenStorage{}
 		refreshTokenStorage.On("CreateRefreshTokenSession", Anything, Anything, Anything).Return(tc.errRefrStore)
 
-		//when no refresh token need to be generated we omit the token strategy
-		var refreshTokenStrat TokenStrategy = nil
-		if tc.refreshTokenEnabled == true {
-			tokenMock := &mocks.TokenStrategy{}
-			tokenMock.On("Generate", Anything).Return("refresh", "refresh.token", tc.errRefrStrat)
-			refreshTokenStrat = tokenMock
-		}
+		tokenStrategy := &mocks.TokenStrategy{}
+		tokenStrategy.On("AuthorizeCodeSignature", Anything, Anything).Return(func(in string) string { return in }, tc.errAuthStrat)
+		tokenStrategy.On("GenerateAccessToken", Anything, Anything).Return("access", "access.token", tc.errAccStrat)
+		tokenStrategy.On("GenerateRefreshToken", Anything, Anything).Return("refresh", "refresh.token", tc.errRefrStrat)
 
-		handler := NewAccessTokenHandler(
-			authCodeStorage, accTokenStorage, refreshTokenStorage,
-			authCodeStrat, accTokenStrat, refreshTokenStrat,
-			tc.refreshTokenScope,
-		)
+		handler := NewAccessTokenHandler(authCodeStorage, accTokenStorage, refreshTokenStorage, tokenStrategy, tc.refreshTokenScope)
 
 		session := &mocks.Session{}
 		session.On("ExpiresAt").Return(time.Now().Add(time.Hour))

@@ -6,7 +6,7 @@ import (
 
 type AuthorizeCodeHandler struct {
 	codeStorage           AuthorizeCodeStorage
-	authorizeCodeStrategy TokenStrategy
+	authorizeCodeStrategy AuthorizeCodeStrategy
 	scopeStrategy         ScopeStrategy
 }
 
@@ -31,7 +31,7 @@ func (h *AuthorizeCodeHandler) Handle(ctx context.Context, req AuthorizeRequest,
 	}
 
 	//generate authorization code
-	signature, token, err := h.authorizeCodeStrategy.Generate(req)
+	signature, token, err := h.authorizeCodeStrategy.GenerateAuthorizeCode(ctx, req)
 	if err != nil {
 		return false, err
 	}
@@ -49,7 +49,7 @@ func (h *AuthorizeCodeHandler) Handle(ctx context.Context, req AuthorizeRequest,
 	return true, nil
 }
 
-func NewAuthorizeCodeHandler(storage AuthorizeCodeStorage, authorizeCodeStrategy TokenStrategy, scopeStrategy ScopeStrategy) *AuthorizeCodeHandler {
+func NewAuthorizeCodeHandler(storage AuthorizeCodeStorage, authorizeCodeStrategy AuthorizeCodeStrategy, scopeStrategy ScopeStrategy) *AuthorizeCodeHandler {
 	return &AuthorizeCodeHandler{
 		codeStorage:           storage,
 		authorizeCodeStrategy: authorizeCodeStrategy,

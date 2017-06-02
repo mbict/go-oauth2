@@ -38,6 +38,11 @@ func (_m *Session) Id() oauth2.SessionId {
 	return r0
 }
 
+// SetExpiresAt provides a mock function with given fields: expireAt
+func (_m *Session) SetExpiresAt(expireAt time.Time) {
+	_m.Called(expireAt)
+}
+
 // UserId provides a mock function with given fields:
 func (_m *Session) UserId() string {
 	ret := _m.Called()

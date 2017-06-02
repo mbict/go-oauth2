@@ -8,7 +8,7 @@ import (
 
 type ImplicitAuthorizeHandler struct {
 	accessTokenStorage  AccessTokenStorage
-	accessTokenStrategy TokenStrategy
+	accessTokenStrategy AccessTokenStrategy
 	scopeStrategy       ScopeStrategy
 }
 
@@ -33,7 +33,7 @@ func (h *ImplicitAuthorizeHandler) Handle(ctx context.Context, req AuthorizeRequ
 	}
 
 	//we create a new access token
-	signature, token, err := h.accessTokenStrategy.Generate(req)
+	signature, token, err := h.accessTokenStrategy.GenerateAccessToken(ctx, req)
 	if err != nil {
 		return false, err
 	}
@@ -57,7 +57,7 @@ func (h *ImplicitAuthorizeHandler) Handle(ctx context.Context, req AuthorizeRequ
 	return true, nil
 }
 
-func NewImplicitAuthorizeHandler(accessTokenStorage AccessTokenStorage, accessTokenStrategy TokenStrategy, scopeStrategy ScopeStrategy) *ImplicitAuthorizeHandler {
+func NewImplicitAuthorizeHandler(accessTokenStorage AccessTokenStorage, accessTokenStrategy AccessTokenStrategy, scopeStrategy ScopeStrategy) *ImplicitAuthorizeHandler {
 	return &ImplicitAuthorizeHandler{
 		accessTokenStorage:  accessTokenStorage,
 		accessTokenStrategy: accessTokenStrategy,

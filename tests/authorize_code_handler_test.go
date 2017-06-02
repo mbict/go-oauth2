@@ -104,7 +104,7 @@ func TestAuthorizeCodeHandler(t *testing.T) {
 		authCodeStorage.On("CreateAuthorizeCodeSession", Anything, "test", Anything).Return(tc.errTokenStore)
 
 		authCodeStrat := &mocks.TokenStrategy{}
-		authCodeStrat.On("Generate", Anything).Return("test", "test.token", tc.errTokenStrat)
+		authCodeStrat.On("GenerateAuthorizeCode", Anything, Anything).Return("test", "test.token", tc.errTokenStrat)
 
 		scopeStrat := DefaultScopeStrategy
 		handler := NewAuthorizeCodeHandler(authCodeStorage, authCodeStrat, scopeStrat)
@@ -130,7 +130,7 @@ func TestAuthorizeCodeHandler(t *testing.T) {
 			assert.EqualValues(t, tc.state, resp.GetQuery("state"), "[%s] expected state in response '%v' but got '%v'", test, tc.state, resp.GetQuery("state"))
 
 			authCodeStorage.AssertNumberOfCalls(t, "CreateAuthorizeCodeSession", 1)
-			authCodeStrat.AssertNumberOfCalls(t, "Generate", 1)
+			authCodeStrat.AssertNumberOfCalls(t, "GenerateAuthorizeCode", 1)
 		}
 	}
 }

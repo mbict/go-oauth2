@@ -19,7 +19,7 @@ func (h *ResourceOwnerHandler) Handle(ctx context.Context, req *ResourceOwnerReq
 	}
 
 	//create new access token
-	signature, token, err := h.accessTokenStrategy.Generate(req)
+	signature, token, err := h.accessTokenStrategy.GenerateAccessToken(ctx, req)
 	if err != nil {
 		return nil, err
 	}

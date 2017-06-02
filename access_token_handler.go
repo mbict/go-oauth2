@@ -6,13 +6,11 @@ import (
 )
 
 type AccessTokenHandler struct {
-	authorizeCodeStorage  AuthorizeCodeStorage
-	accessTokenStorage    AccessTokenStorage
-	refreshTokenStorage   RefreshTokenStorage
-	authorizeCodeStrategy TokenStrategy
-	accessTokenStrategy   TokenStrategy
-	refreshTokenStrategy  TokenStrategy
-	refreshTokenScope     string
+	authorizeCodeStorage AuthorizeCodeStorage
+	accessTokenStorage   AccessTokenStorage
+	refreshTokenStorage  RefreshTokenStorage
+	tokenStrategy        TokenStrategy
+	refreshTokenScope    string
 }
 
 func (h *AccessTokenHandler) Handle(ctx context.Context, req AccessTokenRequest) (Response, error) {
@@ -22,7 +20,7 @@ func (h *AccessTokenHandler) Handle(ctx context.Context, req AccessTokenRequest)
 	}
 
 	//validate signature
-	signature, err := h.authorizeCodeStrategy.Signature(req.Code())
+	signature, err := h.tokenStrategy.AuthorizeCodeSignature(req.Code())
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +53,7 @@ func (h *AccessTokenHandler) Handle(ctx context.Context, req AccessTokenRequest)
 	}
 
 	//create
-	accessSignature, accessToken, err := h.accessTokenStrategy.Generate(reqSession)
+	accessSignature, accessToken, err := h.tokenStrategy.GenerateAccessToken(ctx, reqSession)
 	if err != nil {
 		return nil, err
 	}
@@ -68,10 +66,8 @@ func (h *AccessTokenHandler) Handle(ctx context.Context, req AccessTokenRequest)
 	//check if we need to create a refresh token,
 	//only if we have a refresh token strategy, and we have a scope granted that allows refresh tokens
 	refreshToken := ""
-	createRefreshToken := h.refreshTokenScope == "" || req.GrantedScopes().Has(Scope{h.refreshTokenScope})
-
-	if h.refreshTokenStrategy != nil && createRefreshToken == true {
-		signature, refreshToken, err = h.refreshTokenStrategy.Generate(reqSession)
+	if h.refreshTokenScope != "" && req.GrantedScopes().Has(Scope{h.refreshTokenScope}) {
+		signature, refreshToken, err = h.tokenStrategy.GenerateRefreshToken(ctx, reqSession)
 		if err != nil {
 			return nil, err
 		}
@@ -92,16 +88,16 @@ func (h *AccessTokenHandler) Handle(ctx context.Context, req AccessTokenRequest)
 }
 
 func NewAccessTokenHandler(
-	authorizeCodeStorage AuthorizeCodeStorage, accessTokenStorage AccessTokenStorage, refreshTokenStorage RefreshTokenStorage,
-	authorizeCodeStrategy TokenStrategy, accessTokenStrategy TokenStrategy, refreshTokenStrategy TokenStrategy,
+	authorizeCodeStorage AuthorizeCodeStorage,
+	accessTokenStorage AccessTokenStorage,
+	refreshTokenStorage RefreshTokenStorage,
+	tokenStrategy TokenStrategy,
 	refreshTokenScope string) *AccessTokenHandler {
 	return &AccessTokenHandler{
-		authorizeCodeStorage:  authorizeCodeStorage,
-		accessTokenStorage:    accessTokenStorage,
-		refreshTokenStorage:   refreshTokenStorage,
-		authorizeCodeStrategy: authorizeCodeStrategy,
-		accessTokenStrategy:   accessTokenStrategy,
-		refreshTokenStrategy:  refreshTokenStrategy,
-		refreshTokenScope:     refreshTokenScope,
+		authorizeCodeStorage: authorizeCodeStorage,
+		accessTokenStorage:   accessTokenStorage,
+		refreshTokenStorage:  refreshTokenStorage,
+		tokenStrategy:        tokenStrategy,
+		refreshTokenScope:    refreshTokenScope,
 	}
 }

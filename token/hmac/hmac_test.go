@@ -8,19 +8,19 @@ import (
 )
 
 func TestGenerateFailsWithShortCredentials(t *testing.T) {
-	cg := HMACStrategy{GlobalSecret: []byte("foo")}
-	signature, challenge, err := cg.Generate(nil)
+	cg := HMACsha{GlobalSecret: []byte("foo")}
+	signature, challenge, err := cg.Generate()
 	require.NotNil(t, err, "%s", err)
 	require.Empty(t, challenge)
 	require.Empty(t, signature)
 }
 
 func TestGenerate(t *testing.T) {
-	cg := HMACStrategy{
+	cg := HMACsha{
 		GlobalSecret: []byte("12345678901234567890"),
 	}
 
-	signature, token, err := cg.Generate(nil)
+	signature, token, err := cg.Generate()
 	require.Nil(t, err, "%s", err)
 	require.NotEmpty(t, token)
 	require.NotEmpty(t, signature)
@@ -40,7 +40,7 @@ func TestGenerate(t *testing.T) {
 
 func TestValidateSignatureRejects(t *testing.T) {
 	var err error
-	cg := HMACStrategy{
+	cg := HMACsha{
 		GlobalSecret: []byte("12345678901234567890"),
 	}
 	for k, c := range []string{

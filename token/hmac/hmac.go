@@ -21,12 +21,12 @@ const (
 
 var b64 = base64.URLEncoding.WithPadding(base64.NoPadding)
 
-type HMACStrategy struct {
+type HMACsha struct {
 	AuthCodeEntropy int
 	GlobalSecret    []byte
 }
 
-func (s *HMACStrategy) Signature(token string) (string, error) {
+func (s *HMACsha) Signature(token string) (string, error) {
 	split := strings.Split(token, ".")
 
 	if err := s.Validate(token); err != nil {
@@ -40,7 +40,7 @@ func (s *HMACStrategy) Signature(token string) (string, error) {
 }
 
 // Validate validates a token and returns its signature or an error if the token is not valid.
-func (s *HMACStrategy) Validate(token string) error {
+func (s *HMACsha) Validate(token string) error {
 	split := strings.Split(token, ".")
 	if len(split) != 2 {
 		return errors.WithStack(oauth2.ErrInvalidToken)
@@ -77,7 +77,8 @@ func (s *HMACStrategy) Validate(token string) error {
 	return nil
 }
 
-func (s *HMACStrategy) Generate(request oauth2.Request) (string, string, error) {
+// Generate will return a signature and token
+func (s *HMACsha) Generate() (string, string, error) {
 	if len(s.GlobalSecret) < minimumSecretLength/2 {
 		return "", "", errors.New("Secret is not strong enough")
 	}

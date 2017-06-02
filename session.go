@@ -11,6 +11,7 @@ type Session interface {
 	Id() SessionId
 	UserId() string
 	ExpiresAt() time.Time
+	SetExpiresAt(expireAt time.Time)
 }
 
 type session struct {
@@ -29,6 +30,10 @@ func (s *session) UserId() string {
 
 func (s *session) ExpiresAt() time.Time {
 	return s.expiresAt
+}
+
+func (s *session) SetExpiresAt(expireAt time.Time) {
+	s.expiresAt = expireAt
 }
 
 func NewSession(userId string) Session {

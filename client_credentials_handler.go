@@ -7,7 +7,7 @@ import (
 
 type ClientCredentialsHandler struct {
 	accessTokenStorage  AccessTokenStorage
-	accessTokenStrategy TokenStrategy
+	accessTokenStrategy AccessTokenStrategy
 }
 
 func (h *ClientCredentialsHandler) Handle(ctx context.Context, req *ClientCredentialsRequest) (Response, error) {
@@ -18,7 +18,7 @@ func (h *ClientCredentialsHandler) Handle(ctx context.Context, req *ClientCreden
 	//}
 
 	//create new access token
-	signature, token, err := h.accessTokenStrategy.Generate(req)
+	signature, token, err := h.accessTokenStrategy.GenerateAccessToken(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +39,7 @@ func (h *ClientCredentialsHandler) Handle(ctx context.Context, req *ClientCreden
 	return resp, nil
 }
 
-func NewClientCredentialsHandler(accessTokenStorage AccessTokenStorage, accessTokenStrategy TokenStrategy) *ClientCredentialsHandler {
+func NewClientCredentialsHandler(accessTokenStorage AccessTokenStorage, accessTokenStrategy AccessTokenStrategy) *ClientCredentialsHandler {
 	return &ClientCredentialsHandler{
 		accessTokenStorage:  accessTokenStorage,
 		accessTokenStrategy: accessTokenStrategy,
