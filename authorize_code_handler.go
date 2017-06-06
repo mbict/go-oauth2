@@ -31,7 +31,7 @@ func (h *AuthorizeCodeHandler) Handle(ctx context.Context, req AuthorizeRequest,
 	}
 
 	//generate authorization code
-	signature, token, err := h.authorizeCodeStrategy.GenerateAuthorizeCode(ctx, req)
+	signature, token, err := h.authorizeCodeStrategy.GenerateAuthorizeCode(ctx, req.Session())
 	if err != nil {
 		return false, err
 	}

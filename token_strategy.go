@@ -13,7 +13,7 @@ type TokenStrategy interface {
 
 type AuthorizeCodeStrategy interface {
 	AuthorizeCodeSignature(token string) (string, error)
-	GenerateAuthorizeCode(ctx context.Context, request Request) (signature string, token string, err error)
+	GenerateAuthorizeCode(ctx context.Context, session Session) (signature string, token string, err error)
 	ValidateAuthorizeCode(ctx context.Context, session Session, token string) (err error)
 	AuthorizeCodeLifespan() time.Duration
 }

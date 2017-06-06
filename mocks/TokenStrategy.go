@@ -109,27 +109,27 @@ func (_m *TokenStrategy) GenerateAccessToken(ctx context.Context, session oauth2
 	return r0, r1, r2
 }
 
-// GenerateAuthorizeCode provides a mock function with given fields: ctx, request
-func (_m *TokenStrategy) GenerateAuthorizeCode(ctx context.Context, request oauth2.Request) (string, string, error) {
-	ret := _m.Called(ctx, request)
+// GenerateAuthorizeCode provides a mock function with given fields: ctx, session
+func (_m *TokenStrategy) GenerateAuthorizeCode(ctx context.Context, session oauth2.Session) (string, string, error) {
+	ret := _m.Called(ctx, session)
 
 	var r0 string
-	if rf, ok := ret.Get(0).(func(context.Context, oauth2.Request) string); ok {
-		r0 = rf(ctx, request)
+	if rf, ok := ret.Get(0).(func(context.Context, oauth2.Session) string); ok {
+		r0 = rf(ctx, session)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
 	var r1 string
-	if rf, ok := ret.Get(1).(func(context.Context, oauth2.Request) string); ok {
-		r1 = rf(ctx, request)
+	if rf, ok := ret.Get(1).(func(context.Context, oauth2.Session) string); ok {
+		r1 = rf(ctx, session)
 	} else {
 		r1 = ret.Get(1).(string)
 	}
 
 	var r2 error
-	if rf, ok := ret.Get(2).(func(context.Context, oauth2.Request) error); ok {
-		r2 = rf(ctx, request)
+	if rf, ok := ret.Get(2).(func(context.Context, oauth2.Session) error); ok {
+		r2 = rf(ctx, session)
 	} else {
 		r2 = ret.Error(2)
 	}
