@@ -39,8 +39,8 @@ func (r *IntrospectResponse) toMap() map[string]interface{} {
 			data["scope"] = r.Scope
 		}
 
-		//if r.TokenType != "" {
-		//	data["token_type"] = r.TokenType
+		//if s.TokenType != "" {
+		//	data["token_type"] = s.TokenType
 		//}
 
 		if r.ClientId != "" {

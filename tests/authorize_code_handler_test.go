@@ -15,7 +15,7 @@ func TestAuthorizeCodeHandler(t *testing.T) {
 		clientResponseTypes ResponseTypes
 		clientRedirectUri   []string
 		redirectUri         string
-		scope               Scope
+		grantedScopes       Scope
 		clientScope         Scope
 		state               string
 		error               error
@@ -47,7 +47,7 @@ func TestAuthorizeCodeHandler(t *testing.T) {
 			clientResponseTypes: ResponseTypes{CODE},
 			redirectUri:         "http://test.com/foo",
 			clientRedirectUri:   []string{"http://test.com/foo"},
-			scope:               Scope{"foo", "bar", "baz"},
+			grantedScopes:       Scope{"foo", "bar", "baz"},
 			clientScope:         Scope{"foo", "bar"},
 			error:               ErrInvalidScope,
 		},
@@ -81,10 +81,10 @@ func TestAuthorizeCodeHandler(t *testing.T) {
 			handled:             true,
 		},
 
-		"with scope": {
+		"with grantedScopes": {
 			responseTypes:       ResponseTypes{CODE},
 			clientResponseTypes: ResponseTypes{CODE},
-			scope:               Scope{"foo"},
+			grantedScopes:       Scope{"foo"},
 			clientScope:         Scope{"foo"},
 			handled:             true,
 		},
@@ -110,6 +110,7 @@ func TestAuthorizeCodeHandler(t *testing.T) {
 		handler := NewAuthorizeCodeHandler(authCodeStorage, authCodeStrat, scopeStrat)
 
 		session := &mocks.Session{}
+		session.On("GrantedScopes").Return(tc.grantedScopes)
 
 		client := &mocks.Client{}
 		client.On("ClientId").Return(ClientId("1"))
@@ -117,7 +118,7 @@ func TestAuthorizeCodeHandler(t *testing.T) {
 		client.On("RedirectUri").Return(tc.clientRedirectUri)
 		client.On("Scope").Return(tc.clientScope)
 
-		req := generateAuthorizeRequest(tc.responseTypes, tc.redirectUri, tc.state, tc.scope, session, client)
+		req := generateAuthorizeRequest(tc.responseTypes, tc.redirectUri, tc.state, session, client)
 		resp := NewAuthorizeResponse(tc.redirectUri)
 
 		handled, err := handler.Handle(nil, req, resp)
@@ -135,7 +136,7 @@ func TestAuthorizeCodeHandler(t *testing.T) {
 	}
 }
 
-func generateAuthorizeRequest(responseTypes ResponseTypes, redirectUrl string, state string, grantedScopes Scope, session Session, client Client) AuthorizeRequest {
+func generateAuthorizeRequest(responseTypes ResponseTypes, redirectUrl string, state string, session Session, client Client) AuthorizeRequest {
 	var rurl *url.URL
 	if redirectUrl != "" {
 		rurl, _ = url.Parse(redirectUrl)
@@ -145,7 +146,6 @@ func generateAuthorizeRequest(responseTypes ResponseTypes, redirectUrl string, s
 	req.On("ResponseTypes").Return(responseTypes)
 	req.On("RedirectUri").Return(rurl)
 	req.On("State").Return(state)
-	req.On("GrantedScopes").Return(grantedScopes)
 	req.On("Session").Return(session)
 	req.On("Client").Return(client)
 

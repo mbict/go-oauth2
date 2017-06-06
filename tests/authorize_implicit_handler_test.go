@@ -16,7 +16,7 @@ func TestAuthorizeImplicitHandler(t *testing.T) {
 		clientResponseTypes ResponseTypes
 		clientRedirectUri   []string
 		redirectUri         string
-		scope               Scope
+		grantedScopes       Scope
 		clientScope         Scope
 		state               string
 		error               error
@@ -48,7 +48,7 @@ func TestAuthorizeImplicitHandler(t *testing.T) {
 			clientResponseTypes: ResponseTypes{TOKEN},
 			redirectUri:         "http://test.com/foo",
 			clientRedirectUri:   []string{"http://test.com/foo"},
-			scope:               Scope{"foo", "bar", "baz"},
+			grantedScopes:       Scope{"foo", "bar", "baz"},
 			clientScope:         Scope{"foo", "bar"},
 			error:               ErrInvalidScope,
 		},
@@ -82,10 +82,10 @@ func TestAuthorizeImplicitHandler(t *testing.T) {
 			handled:             true,
 		},
 
-		"with scope": {
+		"with grantedScopes": {
 			responseTypes:       ResponseTypes{TOKEN},
 			clientResponseTypes: ResponseTypes{TOKEN},
-			scope:               Scope{"foo"},
+			grantedScopes:       Scope{"foo"},
 			clientScope:         Scope{"foo"},
 			handled:             true,
 		},
@@ -112,6 +112,7 @@ func TestAuthorizeImplicitHandler(t *testing.T) {
 
 		session := &mocks.Session{}
 		session.On("ExpiresAt").Return(time.Now().Add(time.Hour))
+		session.On("GrantedScopes").Return(tc.grantedScopes)
 
 		client := &mocks.Client{}
 		client.On("ClientId").Return(ClientId("1"))
@@ -119,7 +120,7 @@ func TestAuthorizeImplicitHandler(t *testing.T) {
 		client.On("RedirectUri").Return(tc.clientRedirectUri)
 		client.On("Scope").Return(tc.clientScope)
 
-		req := generateAuthorizeRequest(tc.responseTypes, tc.redirectUri, tc.state, tc.scope, session, client)
+		req := generateAuthorizeRequest(tc.responseTypes, tc.redirectUri, tc.state, session, client)
 		resp := NewAuthorizeResponse(tc.redirectUri)
 
 		handled, err := handler.Handle(nil, req, resp)
@@ -130,7 +131,7 @@ func TestAuthorizeImplicitHandler(t *testing.T) {
 		if tc.error == nil && tc.handled {
 			assert.EqualValues(t, "test.token", resp.GetQuery("access_token"), "[%s] expected code in response '%v' but got '%v'", test, "test.token", resp.GetQuery("access_token"))
 			assert.EqualValues(t, tc.state, resp.GetQuery("state"), "[%s] expected state in response '%v' but got '%v'", test, tc.state, resp.GetQuery("state"))
-			assert.EqualValues(t, tc.scope.String(), resp.GetQuery("scope"), "[%s] expected scope in response '%v' but got '%v'", test, tc.scope.String(), resp.GetQuery("scope"))
+			assert.EqualValues(t, tc.grantedScopes.String(), resp.GetQuery("scope"), "[%s] expected grantedScopes in response '%v' but got '%v'", test, tc.grantedScopes.String(), resp.GetQuery("scope"))
 
 			expiresInQuery, _ := strconv.ParseFloat(resp.GetQuery("expires_in"), 64)
 			assert.InDelta(t, time.Hour.Seconds(), expiresInQuery, 10, "[%s] expected expires_in in response '%d' but got '%d' with a delta of %d", test, time.Hour.Seconds(), resp.GetQuery("expires_in"), 10)

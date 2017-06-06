@@ -23,20 +23,6 @@ func (_m *Client) ClientId() oauth2.ClientId {
 	return r0
 }
 
-// ClientSecret provides a mock function with given fields:
-func (_m *Client) ClientSecret() string {
-	ret := _m.Called()
-
-	var r0 string
-	if rf, ok := ret.Get(0).(func() string); ok {
-		r0 = rf()
-	} else {
-		r0 = ret.Get(0).(string)
-	}
-
-	return r0
-}
-
 // GrantTypes provides a mock function with given fields:
 func (_m *Client) GrantTypes() oauth2.GrantTypes {
 	ret := _m.Called()
@@ -48,20 +34,6 @@ func (_m *Client) GrantTypes() oauth2.GrantTypes {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(oauth2.GrantTypes)
 		}
-	}
-
-	return r0
-}
-
-// Name provides a mock function with given fields:
-func (_m *Client) Name() string {
-	ret := _m.Called()
-
-	var r0 string
-	if rf, ok := ret.Get(0).(func() string); ok {
-		r0 = rf()
-	} else {
-		r0 = ret.Get(0).(string)
 	}
 
 	return r0

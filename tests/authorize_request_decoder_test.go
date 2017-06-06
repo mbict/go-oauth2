@@ -59,7 +59,7 @@ func TestAuthorizeRequestDecoder(t *testing.T) {
 			responseType: ResponseTypes{"code", "token"},
 			clientId:     "1",
 			redirectUri:  "https://test.com/path"},
-		"with empty scope": {
+		"with empty grantedScopes": {
 			url:          "ar?response_type=token&client_id=1&redirect_uri=https%3A%2F%2Ftest.com%2Fpath&scope=&boo=test",
 			responseType: ResponseTypes{"token"},
 			clientId:     "1",

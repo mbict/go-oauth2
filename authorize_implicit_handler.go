@@ -28,12 +28,12 @@ func (h *ImplicitAuthorizeHandler) Handle(ctx context.Context, req AuthorizeRequ
 	}
 
 	//check if all the granted scopes belong to the client
-	if !h.scopeStrategy(req.Client().Scope(), req.GrantedScopes()...) {
+	if !h.scopeStrategy(req.Client().Scope(), req.Session().GrantedScopes()...) {
 		return false, ErrInvalidScope
 	}
 
 	//we create a new access token
-	signature, token, err := h.accessTokenStrategy.GenerateAccessToken(ctx, req)
+	signature, token, err := h.accessTokenStrategy.GenerateAccessToken(ctx, req.Session())
 	if err != nil {
 		return false, err
 	}
@@ -50,8 +50,8 @@ func (h *ImplicitAuthorizeHandler) Handle(ctx context.Context, req AuthorizeRequ
 		resp.AddQuery("state", req.State())
 	}
 
-	if len(req.GrantedScopes()) > 0 {
-		resp.AddQuery("scope", req.GrantedScopes().String())
+	if len(req.Session().GrantedScopes()) > 0 {
+		resp.AddQuery("scope", req.Session().GrantedScopes().String())
 	}
 
 	return true, nil

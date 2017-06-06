@@ -27,33 +27,6 @@ func (_m *AuthorizeRequest) Client() oauth2.Client {
 	return r0
 }
 
-// GrantScope provides a mock function with given fields: scope
-func (_m *AuthorizeRequest) GrantScope(scope ...string) {
-	_va := make([]interface{}, len(scope))
-	for _i := range scope {
-		_va[_i] = scope[_i]
-	}
-	var _ca []interface{}
-	_ca = append(_ca, _va...)
-	_m.Called(_ca...)
-}
-
-// GrantedScopes provides a mock function with given fields:
-func (_m *AuthorizeRequest) GrantedScopes() oauth2.Scope {
-	ret := _m.Called()
-
-	var r0 oauth2.Scope
-	if rf, ok := ret.Get(0).(func() oauth2.Scope); ok {
-		r0 = rf()
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(oauth2.Scope)
-		}
-	}
-
-	return r0
-}
-
 // RedirectUri provides a mock function with given fields:
 func (_m *AuthorizeRequest) RedirectUri() *url.URL {
 	ret := _m.Called()
@@ -146,6 +119,11 @@ func (_m *AuthorizeRequest) Session() oauth2.Session {
 	}
 
 	return r0
+}
+
+// SetSession provides a mock function with given fields: _a0
+func (_m *AuthorizeRequest) SetSession(_a0 oauth2.Session) {
+	_m.Called(_a0)
 }
 
 // State provides a mock function with given fields:

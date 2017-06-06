@@ -26,7 +26,7 @@ func (h *AuthorizeCodeHandler) Handle(ctx context.Context, req AuthorizeRequest,
 	}
 
 	//check if all the granted scopes belong to the client
-	if !h.scopeStrategy(req.Client().Scope(), req.GrantedScopes()...) {
+	if !h.scopeStrategy(req.Client().Scope(), req.Session().GrantedScopes()...) {
 		return false, ErrInvalidScope
 	}
 

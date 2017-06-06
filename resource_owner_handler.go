@@ -14,12 +14,12 @@ type ResourceOwnerHandler struct {
 func (h *ResourceOwnerHandler) Handle(ctx context.Context, req *ResourceOwnerRequest) (Response, error) {
 
 	//check if all the scopes are there
-	if !req.Client().Scope().Has(req.GrantedScopes()) {
+	if !req.Client().Scope().Has(req.Session().GrantedScopes()) {
 		return nil, ErrInvalidScope
 	}
 
 	//create new access token
-	signature, token, err := h.accessTokenStrategy.GenerateAccessToken(ctx, req)
+	signature, token, err := h.accessTokenStrategy.GenerateAccessToken(ctx, req.Session())
 	if err != nil {
 		return nil, err
 	}

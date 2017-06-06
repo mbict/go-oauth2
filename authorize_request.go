@@ -33,6 +33,15 @@ func (r *authorizeRequest) State() string {
 	return r.state
 }
 
+func NewAuthorizeRequest(requestedAt time.Time, client Client, session Session, requestValues url.Values, requestedScopes Scope, responseTypes ResponseTypes, redirectUri *url.URL, state string) AuthorizeRequest {
+	return &authorizeRequest{
+		Request:       newRequest(requestedAt, client, session, requestValues, requestedScopes),
+		responseTypes: responseTypes,
+		redirectUri:   redirectUri,
+		state:         state,
+	}
+}
+
 func DecodeAuthorizeRequest(storage ClientStorage) RequestDecoder {
 	return func(ctx context.Context, req *http.Request) (Request, error) {
 		responseTypes := responseTypeFromString(req.FormValue("response_type"))
@@ -68,12 +77,10 @@ func DecodeAuthorizeRequest(storage ClientStorage) RequestDecoder {
 
 		return &authorizeRequest{
 			Request: &request{
-				requestedAt: time.Now(),
-				client:      client,
-				//session
+				requestedAt:     time.Now(),
+				client:          client,
 				requestValue:    req.Form,
 				requestedScopes: scope,
-				grantedScopes:   nil,
 			},
 			responseTypes: responseTypes,
 			redirectUri:   redirectUri,

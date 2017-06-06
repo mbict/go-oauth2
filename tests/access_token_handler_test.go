@@ -27,8 +27,8 @@ func TestAccessTokenHandler(t *testing.T) {
 		clientGrantTypes       GrantTypes //grantTypes supported by client
 		sessionRedirectUri     string     //redirect uri used in authorize code session
 		redirectUri            string     //redirect uri used in request
-		refreshTokenScope      string     //name of scope to enable refresh token creation
-		scope                  Scope      //granted scope
+		refreshTokenScope      string     //name of grantedScopes to enable refresh token creation
+		grantedScopes          Scope      //granted grantedScopes
 		error                  error      //expected error
 		token                  string     //expected token
 		refreshToken           string     //expected refresh token
@@ -125,7 +125,7 @@ func TestAccessTokenHandler(t *testing.T) {
 			sessionIssuedForClient: "1",
 			code:              "ok.token",
 			refreshTokenScope: "offline",
-			scope:             Scope{"offline"},
+			grantedScopes:     Scope{"offline"},
 			sessionExpiresAt:  defaultExpireTime,
 			errRefrStrat:      ErrServerError,
 			error:             ErrServerError,
@@ -135,14 +135,14 @@ func TestAccessTokenHandler(t *testing.T) {
 			sessionIssuedForClient: "1",
 			code:              "ok.token",
 			refreshTokenScope: "offline",
-			scope:             Scope{"offline"},
+			grantedScopes:     Scope{"offline"},
 			sessionExpiresAt:  defaultExpireTime,
 			errRefrStore:      ErrServerError,
 			error:             ErrServerError,
 		},
 
 		//Success
-		"without refresh token strategy (empty scope disabled)": {
+		"without refresh token strategy (empty grantedScopes disabled)": {
 			clientGrantTypes:       defaultGrantTypes,
 			sessionIssuedForClient: "1",
 			code:             "ok.token",
@@ -158,21 +158,21 @@ func TestAccessTokenHandler(t *testing.T) {
 			sessionRedirectUri: "http://test.com/foo",
 			token:              "access.token",
 		},
-		"no refresh token scope granted (offline scope)": {
+		"no refresh token grantedScopes granted (offline grantedScopes)": {
 			clientGrantTypes:       defaultGrantTypes,
 			sessionIssuedForClient: "1",
 			code:              "ok.token",
 			sessionExpiresAt:  defaultExpireTime,
 			refreshTokenScope: "offline",
-			scope:             Scope{"foo"},
+			grantedScopes:     Scope{"foo"},
 			token:             "access.token",
 		},
-		"with refresh token scope granted (offline scope)": {
+		"with refresh token grantedScopes granted (offline grantedScopes)": {
 			clientGrantTypes:       defaultGrantTypes,
 			sessionIssuedForClient: "1",
 			code:              "ok.token",
 			sessionExpiresAt:  defaultExpireTime,
-			scope:             Scope{"offline"},
+			grantedScopes:     Scope{"offline"},
 			refreshTokenScope: "offline",
 			token:             "access.token",
 			refreshToken:      "refresh.token",
@@ -184,14 +184,17 @@ func TestAccessTokenHandler(t *testing.T) {
 
 		authSession := &mocks.Session{}
 		authSession.On("ExpiresAt").Return(tc.sessionExpiresAt)
+		authSession.On("ClientId").Return(tc.sessionIssuedForClient)
+		authSession.On("GrantedScopes").Return(tc.grantedScopes)
 
-		authClient := &mocks.Client{}
-		authClient.On("ClientId").Return(tc.sessionIssuedForClient)
-
-		reqSession := generateAuthorizeRequest(ResponseTypes{AUTHORIZATION_CODE}, tc.sessionRedirectUri, "xxx", Scope{}, authSession, authClient)
+		var authSessionRedirectUri *url.URL
+		if tc.sessionRedirectUri != "" {
+			authSessionRedirectUri, _ = url.Parse(tc.sessionRedirectUri)
+		}
+		authSession.On("RedirectUri").Return(authSessionRedirectUri)
 
 		authCodeStorage := &mocks.AuthorizeCodeStorage{}
-		authCodeStorage.On("GetAuthorizeCodeSession", Anything, Anything).Return(reqSession, tc.errAuthStore)
+		authCodeStorage.On("GetAuthorizeCodeSession", Anything, Anything).Return(authSession, tc.errAuthStore)
 		authCodeStorage.On("DeleteAuthorizeCodeSession", Anything, Anything).Return(true, tc.errAuthStoreDelete)
 
 		accTokenStorage := &mocks.AccessTokenStorage{}
@@ -207,19 +210,21 @@ func TestAccessTokenHandler(t *testing.T) {
 
 		handler := NewAccessTokenHandler(authCodeStorage, accTokenStorage, refreshTokenStorage, tokenStrategy, tc.refreshTokenScope)
 
-		session := &mocks.Session{}
-		session.On("ExpiresAt").Return(time.Now().Add(time.Hour))
+		//session := &mocks.Session{}
+		//session.On("ExpiresAt").Return(time.Now().Add(time.Hour))
+		//session.On("GrantedScopes").Return()
 
 		client := &mocks.Client{}
 		client.On("ClientId").Return(ClientId("1"))
 		client.On("GrantTypes").Return(tc.clientGrantTypes)
 
-		req := generateAccessTokenRequest(tc.code, tc.redirectUri, tc.scope, session, client)
+		req := generateAccessTokenRequest(tc.code, tc.redirectUri, client)
 
 		resp, err := handler.Handle(nil, req)
 
 		assert.EqualValues(t, tc.error, err, "[%s] expected err %v as error but got %v", test, tc.error, err)
-		if tc.error == nil {
+		if tc.error == nil && assert.NotNil(t, resp, "[%s] expected request to be not nil", test) {
+
 			assert.Implements(t, (*AccessTokenResponse)(nil), resp, "[%s] expected request to be type of AccessTokenResponse but got %T", test, resp)
 			if aresp, ok := resp.(AccessTokenResponse); ok == true {
 				assert.EqualValues(t, tc.token, aresp.AccessToken(), "[%s] expected access token in response '%v' but got '%v'", test, tc.token, aresp.AccessToken())
@@ -231,7 +236,7 @@ func TestAccessTokenHandler(t *testing.T) {
 	}
 }
 
-func generateAccessTokenRequest(code string, redirectUrl string, grantedScopes Scope, session Session, client Client) AccessTokenRequest {
+func generateAccessTokenRequest(code string, redirectUrl string, client Client) AccessTokenRequest {
 	var rurl *url.URL
 	if redirectUrl != "" {
 		rurl, _ = url.Parse(redirectUrl)
@@ -240,8 +245,6 @@ func generateAccessTokenRequest(code string, redirectUrl string, grantedScopes S
 	req := &mocks.AccessTokenRequest{}
 	req.On("Code").Return(code)
 	req.On("RedirectUri").Return(rurl)
-	req.On("GrantedScopes").Return(grantedScopes)
-	req.On("Session").Return(session)
 	req.On("Client").Return(client)
 
 	return req

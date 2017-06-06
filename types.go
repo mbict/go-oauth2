@@ -8,8 +8,8 @@ import (
 type ClientId string
 type Client interface {
 	ClientId() ClientId
-	ClientSecret() string
-	Name() string
+	//ClientSecret() string
+	//Name() string
 	RedirectUri() []string
 	GrantTypes() GrantTypes
 	ResponseTypes() ResponseTypes

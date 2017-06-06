@@ -26,19 +26,19 @@ type TokenStorage interface {
 
 type AuthorizeCodeStorage interface {
 	CreateAuthorizeCodeSession(ctx context.Context, code string, req AuthorizeRequest) error
-	GetAuthorizeCodeSession(ctx context.Context, code string) (AuthorizeRequest, error)
+	GetAuthorizeCodeSession(ctx context.Context, code string) (Session, error)
 	DeleteAuthorizeCodeSession(ctx context.Context, code string) (bool, error)
 }
 
 type AccessTokenStorage interface {
 	CreateAccessTokenSession(ctx context.Context, signature string, req Request) error
-	GetAccessTokenSession(ctx context.Context, signature string) (Request, error)
+	GetAccessTokenSession(ctx context.Context, signature string) (Session, error)
 	DeleteAccessTokenSession(ctx context.Context, signature string) (bool, error)
 }
 
 type RefreshTokenStorage interface {
 	CreateRefreshTokenSession(ctx context.Context, signature string, req Request) error
-	GetRefreshTokenSession(ctx context.Context, signature string) (Request, error)
+	GetRefreshTokenSession(ctx context.Context, signature string) (Session, error)
 	DeleteRefreshTokenSession(ctx context.Context, signature string) (bool, error)
 }
 
@@ -50,7 +50,3 @@ type ClientStorage interface {
 type UserStorage interface {
 	AuthenticateUser(ctx context.Context, username string, password string) (string, error)
 }
-
-//type SessionResolverStorage interface {
-//	GetSession(SessionId) (Session, error)
-//}

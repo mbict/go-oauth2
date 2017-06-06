@@ -13,19 +13,19 @@ type AuthenticateStrategyFunc func(context.Context, *AuthorizeRequest) (Response
 //	if err != nil {
 //		panic(err)
 //	}
-//	return func(ctx context.Context, r *AuthorizeRequest) (Response, error) {
+//	return func(ctx context.Context, s *AuthorizeRequest) (Response, error) {
 //		redirectUri := *baseUrl
 //		q := map[string]string{
-//			"client_id":     string(r.Client().ClientId()),
-//			"response_type": r.responseTypes.String(),
-//			"redirect_uri":  r.RedirectUri.String(),
+//			"client_id":     string(s.Client().ClientId()),
+//			"response_type": s.responseTypes.String(),
+//			"redirect_uri":  s.RedirectUri.String(),
 //		}
 //
-//		if len(r.Scope) > 0 {
-//			q["scope"] = r.Scope.String()
+//		if len(s.Scope) > 0 {
+//			q["scope"] = s.Scope.String()
 //		}
-//		if r.state != "" {
-//			q["state"] = r.state
+//		if s.state != "" {
+//			q["state"] = s.state
 //		}
 //
 //		return &ErrorResponse{

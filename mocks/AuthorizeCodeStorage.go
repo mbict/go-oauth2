@@ -46,15 +46,15 @@ func (_m *AuthorizeCodeStorage) DeleteAuthorizeCodeSession(ctx context.Context, 
 }
 
 // GetAuthorizeCodeSession provides a mock function with given fields: ctx, code
-func (_m *AuthorizeCodeStorage) GetAuthorizeCodeSession(ctx context.Context, code string) (oauth2.AuthorizeRequest, error) {
+func (_m *AuthorizeCodeStorage) GetAuthorizeCodeSession(ctx context.Context, code string) (oauth2.Session, error) {
 	ret := _m.Called(ctx, code)
 
-	var r0 oauth2.AuthorizeRequest
-	if rf, ok := ret.Get(0).(func(context.Context, string) oauth2.AuthorizeRequest); ok {
+	var r0 oauth2.Session
+	if rf, ok := ret.Get(0).(func(context.Context, string) oauth2.Session); ok {
 		r0 = rf(ctx, code)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(oauth2.AuthorizeRequest)
+			r0 = ret.Get(0).(oauth2.Session)
 		}
 	}
 

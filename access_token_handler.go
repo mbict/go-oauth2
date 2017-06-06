@@ -25,24 +25,24 @@ func (h *AccessTokenHandler) Handle(ctx context.Context, req AccessTokenRequest)
 		return nil, err
 	}
 
-	reqSession, err := h.authorizeCodeStorage.GetAuthorizeCodeSession(ctx, signature)
+	session, err := h.authorizeCodeStorage.GetAuthorizeCodeSession(ctx, signature)
 	if err != nil {
 		return nil, err
 	}
 
 	// session must be issued for this client
-	if reqSession.Client().ClientId() != req.Client().ClientId() {
+	if session.ClientId() != req.Client().ClientId() {
 		return nil, ErrUnauthorizedClient
 	}
 
 	// session cannot be expired
-	if reqSession.Session().ExpiresAt().After(time.Now()) == false {
+	if session.ExpiresAt().After(time.Now()) == false {
 		return nil, ErrSessionExpired
 	}
 
 	// validate redirect uri is registered for this client
-	if (req.RedirectUri() == nil) != (reqSession.RedirectUri() == nil) ||
-		(req.RedirectUri() != nil && reqSession.RedirectUri().String() != req.RedirectUri().String()) {
+	if (req.RedirectUri() == nil) != (session.RedirectUri() == nil) ||
+		(req.RedirectUri() != nil && session.RedirectUri().String() != req.RedirectUri().String()) {
 		return nil, ErrInvalidRedirectUri
 	}
 
@@ -53,7 +53,7 @@ func (h *AccessTokenHandler) Handle(ctx context.Context, req AccessTokenRequest)
 	}
 
 	//create
-	accessSignature, accessToken, err := h.tokenStrategy.GenerateAccessToken(ctx, reqSession)
+	accessSignature, accessToken, err := h.tokenStrategy.GenerateAccessToken(ctx, session)
 	if err != nil {
 		return nil, err
 	}
@@ -66,8 +66,8 @@ func (h *AccessTokenHandler) Handle(ctx context.Context, req AccessTokenRequest)
 	//check if we need to create a refresh token,
 	//only if we have a refresh token strategy, and we have a scope granted that allows refresh tokens
 	refreshToken := ""
-	if h.refreshTokenScope != "" && req.GrantedScopes().Has(Scope{h.refreshTokenScope}) {
-		signature, refreshToken, err = h.tokenStrategy.GenerateRefreshToken(ctx, reqSession)
+	if h.refreshTokenScope != "" && session.GrantedScopes().Has(Scope{h.refreshTokenScope}) {
+		signature, refreshToken, err = h.tokenStrategy.GenerateRefreshToken(ctx, session)
 		if err != nil {
 			return nil, err
 		}
@@ -81,7 +81,7 @@ func (h *AccessTokenHandler) Handle(ctx context.Context, req AccessTokenRequest)
 	return &accessTokenResponse{
 		accessToken:  accessToken,
 		tokenType:    "Bearer",
-		expiresIn:    reqSession.Session().ExpiresAt().Sub(time.Now()),
+		expiresIn:    session.ExpiresAt().Sub(time.Now()),
 		refreshToken: refreshToken,
 		data:         make(map[string]interface{}),
 	}, nil

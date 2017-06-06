@@ -7,8 +7,6 @@ import (
 
 type AuthHandler struct {
 	handlers []oauth2.AuthorizeHandler
-	//authorizeCodeHandler     *oauth2.AuthorizeCodeHandler
-	//implicitAuthorizeHandler *oauth2.ImplicitAuthorizeHandler
 }
 
 func NewAuthorizeHandler(authorizeCodeStorage oauth2.AuthorizeCodeStorage, accessTokenStorage oauth2.AccessTokenStorage, authorizeCodeStrategy oauth2.TokenStrategy, accessTokenStrategy oauth2.TokenStrategy, scopeStrategy oauth2.ScopeStrategy) oauth2.Handler {

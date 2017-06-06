@@ -18,7 +18,7 @@ func (h *ClientCredentialsHandler) Handle(ctx context.Context, req *ClientCreden
 	//}
 
 	//create new access token
-	signature, token, err := h.accessTokenStrategy.GenerateAccessToken(ctx, req)
+	signature, token, err := h.accessTokenStrategy.GenerateAccessToken(ctx, req.Session())
 	if err != nil {
 		return nil, err
 	}

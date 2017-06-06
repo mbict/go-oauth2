@@ -12,8 +12,8 @@ import (
 
 // NewSessionResolver creates a simple way to resolve user session based on a cookie
 //func NewUserSessionResolver(sessions SessionResolverStorage) UserSessionResolver {
-//	return func(ctx context.Context, r *http.Request) (Session, error) {
-//		ssid, err := r.Cookie(SessionCookieId)
+//	return func(ctx context.Context, s *http.Request) (Session, error) {
+//		ssid, err := s.Cookie(SessionCookieId)
 //		if err != nil || ssid == nil {
 //			return nil, nil
 //		}
