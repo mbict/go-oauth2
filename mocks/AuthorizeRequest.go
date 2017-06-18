@@ -139,3 +139,19 @@ func (_m *AuthorizeRequest) State() string {
 
 	return r0
 }
+
+// Valid provides a mock function with given fields:
+func (_m *AuthorizeRequest) Valid() oauth2.OAuthError {
+	ret := _m.Called()
+
+	var r0 oauth2.OAuthError
+	if rf, ok := ret.Get(0).(func() oauth2.OAuthError); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(oauth2.OAuthError)
+		}
+	}
+
+	return r0
+}

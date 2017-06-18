@@ -12,6 +12,7 @@ type AuthorizeRequest interface {
 	ResponseTypes() ResponseTypes
 	RedirectUri() *url.URL
 	State() string
+	Valid() OAuthError
 }
 
 type authorizeRequest struct {
@@ -33,6 +34,20 @@ func (r *authorizeRequest) State() string {
 	return r.state
 }
 
+func (r *authorizeRequest) Valid() OAuthError {
+	//client check
+	if r.Client() == nil {
+		return ErrUnauthorizedClient
+	}
+
+	//redirect check
+	if r.RedirectUri() == nil || hasRedirectUri(r.Client().RedirectUri(), r.RedirectUri().String()) == false {
+		return ErrInvalidRedirectUri
+	}
+
+	return nil
+}
+
 func NewAuthorizeRequest(requestedAt time.Time, client Client, session Session, requestValues url.Values, requestedScopes Scope, responseTypes ResponseTypes, redirectUri *url.URL, state string) AuthorizeRequest {
 	return &authorizeRequest{
 		Request:       newRequest(requestedAt, client, session, requestValues, requestedScopes),
@@ -44,32 +59,26 @@ func NewAuthorizeRequest(requestedAt time.Time, client Client, session Session, 
 
 func DecodeAuthorizeRequest(storage ClientStorage) RequestDecoder {
 	return func(ctx context.Context, req *http.Request) (Request, error) {
+		var (
+			err         error
+			redirectUri *url.URL
+			client      Client
+		)
 		responseTypes := responseTypeFromString(req.FormValue("response_type"))
-		if len(responseTypes) == 0 {
-			return nil, ErrInvalidRequest
-		}
-
 		clientId := req.FormValue("client_id")
-		if clientId == "" {
-			return nil, ErrInvalidRequest
-		}
-		client, err := storage.GetClient(ctx, clientId)
-		if err == ErrClientNotFound {
-			return nil, ErrUnauthorizedClient
-		}
-		if err != nil {
-			return nil, err
+		if clientId != "" {
+			client, err = storage.GetClient(ctx, clientId)
+			if err != nil && err != ErrClientNotFound {
+				return nil, err
+			}
 		}
 
-		//redirect url parsing and encoding
 		rawRedirectUri := req.FormValue("redirect_uri")
-		if len(rawRedirectUri) == 0 {
-			return nil, ErrInvalidRequest
-		}
-
-		redirectUri, err := url.Parse(rawRedirectUri)
-		if err != nil || redirectUri.IsAbs() == false {
-			return nil, ErrInvalidRedirectUri
+		if len(rawRedirectUri) > 0 {
+			redirectUri, err = url.Parse(rawRedirectUri)
+			if err != nil || redirectUri.IsAbs() == false {
+				redirectUri = nil
+			}
 		}
 
 		scope := scopeFromString(req.FormValue("scope"))

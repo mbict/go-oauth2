@@ -16,8 +16,7 @@ type AuthorizeResponse interface {
 
 type authorizeResponse struct {
 	redirectUrl *url.URL
-
-	query url.Values
+	query       url.Values
 }
 
 func (r *authorizeResponse) RedirectUri() *url.URL {
@@ -32,7 +31,7 @@ func (r *authorizeResponse) GetQuery(name string) string {
 	return r.query.Get(name)
 }
 
-func (r *authorizeResponse) EncodeResponse(_ context.Context, rw http.ResponseWriter) error {
+func (r *authorizeResponse) EncodeResponse(ctx context.Context, w http.ResponseWriter) error {
 	q := r.redirectUrl.Query()
 	for k, vs := range r.query {
 		for _, v := range vs {
@@ -41,8 +40,8 @@ func (r *authorizeResponse) EncodeResponse(_ context.Context, rw http.ResponseWr
 	}
 	r.redirectUrl.RawQuery = q.Encode()
 
-	rw.Header().Set("Location", r.redirectUrl.String())
-	rw.WriteHeader(http.StatusFound)
+	w.Header().Set("Location", r.redirectUrl.String())
+	w.WriteHeader(http.StatusFound)
 	return nil
 }
 

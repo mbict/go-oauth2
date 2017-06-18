@@ -16,13 +16,12 @@ func (h *AuthorizeCodeHandler) Handle(ctx context.Context, req AuthorizeRequest,
 		return false, nil
 	}
 
-	if !req.Client().ResponseTypes().Contains(CODE) {
-		return false, ErrUnsupportedResponseType
+	if err := req.Valid(); err != nil {
+		return false, err
 	}
 
-	// validate redirect uri is registered for this client
-	if req.RedirectUri() != nil && !hasRedirectUri(req.Client().RedirectUri(), req.RedirectUri().String()) {
-		return false, ErrInvalidRedirectUri
+	if !req.Client().ResponseTypes().Contains(CODE) {
+		return false, ErrUnsupportedResponseType
 	}
 
 	//check if all the granted scopes belong to the client

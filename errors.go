@@ -1,68 +1,93 @@
 package oauth2
 
-import "errors"
+import (
+	"fmt"
+)
 
 var (
 	// ErrSessionExpired is used when a session is expired
-	ErrSessionExpired = errors.New("session expired")
+	ErrSessionExpired = NewError("session expired")
 
 	// ErrInvalidSignature is used when a malformed signature is used
-	ErrInvalidSignature = errors.New("invalid signature")
+	ErrInvalidSignature = NewError("invalid signature")
 
 	// ErrInvalidToken is used when a request does not provide a token
-	ErrInvalidToken = errors.New("invalid token")
+	ErrInvalidToken = NewError("invalid token")
 
 	// ErrInvalidToken is used when a request does not provide a token
-	ErrInvalidCode = errors.New("invalid code")
+	ErrInvalidCode = NewError("invalid code")
 
 	// ErrAuthenticateFailed is used when an user could not be authenticated with username and password.
-	ErrAuthenticateFailed = errors.New("authenticate failed")
+	ErrAuthenticateFailed = NewError("authenticate failed")
 
 	// The request is missing a required parameter, includes an
 	// invalid parameter value, includes a parameter more than
 	// once, or is otherwise malformed.
-	ErrInvalidRequest = errors.New("invalid_request")
+	ErrInvalidRequest = NewError("invalid_request")
 
 	// The client is not authorized to request an authorization
 	// code using this method.
-	ErrUnauthorizedClient = errors.New("unauthorized_client")
+	ErrUnauthorizedClient = NewError("unauthorized_client")
 
 	// The resource owner or authorization server denied the
 	// request.
-	ErrAccessDenied = errors.New("access_denied")
+	ErrAccessDenied = NewError("access_denied")
 
 	// The authorization server does not support obtaining an
 	// authorization code using this method.
-	ErrUnsupportedResponseType = errors.New("unsupported_response_type")
+	ErrUnsupportedResponseType = NewError("unsupported_response_type")
 
 	// The authorization server does not support obtaining an
 	// access token using this method.
-	ErrUnsupportedGrantType = errors.New("unsupported_grant_type")
+	ErrUnsupportedGrantType = NewError("unsupported_grant_type")
 
 	// The requested scope is invalid, unknown, or malformed.
-	ErrInvalidScope = errors.New("invalid_scope")
+	ErrInvalidScope = NewError("invalid_scope")
 
 	// The authorization server encountered an unexpected
 	// condition that prevented it from fulfilling the request.
-	// (This error code is needed because a 500 Internal Server
-	// Error HTTP status code cannot be returned to the client
+	// (This err code is needed because a 500 Internal Server
+	// OAuthError HTTP status code cannot be returned to the client
 	// via an HTTP redirect.)
-	ErrServerError = errors.New("server_error")
+	ErrServerError = NewError("server_error")
 
 	// The authorization server is currently unable to handle
 	// the request due to a temporary overloading or maintenance
-	// of the server.  (This error code is needed because a 503
+	// of the server.  (This err code is needed because a 503
 	// Service Unavailable HTTP status code cannot be returned
 	// to the client via an HTTP redirect.)
-	ErrTemporarilyUnavailable = errors.New("temporarily_unavailable")
+	ErrTemporarilyUnavailable = NewError("temporarily_unavailable")
 
 	// Thee authorization server does not support
 	// the revocation of the presented token type.
-	ErrUnsupportedTokenType = errors.New("unsupported_token_type")
+	ErrUnsupportedTokenType = NewError("unsupported_token_type")
 
-	ErrInvalidRedirectUri = errors.New("invalid_redirect_uri")
+	ErrInvalidRedirectUri = NewError("invalid_redirect_uri")
 )
 
-type errorer interface {
-	error() error
+type OAuthError interface {
+	error
+	RFC6749() *RFC6749Error
+}
+
+type oauthError struct {
+	error
+}
+
+func (e *oauthError) RFC6749() *RFC6749Error {
+	return errorToRFC6749Error(e)
+}
+
+func NewError(e interface{}) OAuthError {
+	var err error
+	switch e := e.(type) {
+	case error:
+		err = e
+	default:
+		err = fmt.Errorf("%v", e)
+	}
+
+	return &oauthError{
+		error: err,
+	}
 }

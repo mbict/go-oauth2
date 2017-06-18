@@ -59,6 +59,10 @@ func TestAccessTokenRequestDecoder(t *testing.T) {
 			postForm:   "grant_type=authorization_code&redirect_uri=x%5C%24%3As%2F%3As%23",
 			authHeader: base64.RawURLEncoding.EncodeToString([]byte("1:test")),
 			error:      ErrInvalidRedirectUri},
+		"not registered redirect url": {
+			postForm:   "grant_type=authorization_code&redirect_uri=https%3A%2F%2Ffoo.com%2Fpath",
+			authHeader: base64.RawURLEncoding.EncodeToString([]byte("1:test")),
+			error:      ErrInvalidRedirectUri},
 		"missing code": {
 			postForm:   "grant_type=authorization_code&redirect_uri=https%3A%2F%2Ftest.com%2Fpath",
 			authHeader: base64.RawURLEncoding.EncodeToString([]byte("1:test")),
@@ -75,6 +79,7 @@ func TestAccessTokenRequestDecoder(t *testing.T) {
 
 	client := &mocks.Client{}
 	client.On("ClientId").Return(ClientId("1"))
+	client.On("RedirectUri").Return([]string{"https://test.com"})
 
 	storage := &mocks.ClientStorage{}
 	storage.On("AuthenticateClient", Anything, "1", "test").Return(client, nil)

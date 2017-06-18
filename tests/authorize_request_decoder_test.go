@@ -42,6 +42,9 @@ func TestAuthorizeRequestDecoder(t *testing.T) {
 		"malformed redirect url": {
 			url:   "ar?response_type=code&client_id=1&redirect_uri=x%5C%24%3As%2F%3As%23",
 			error: ErrInvalidRedirectUri},
+		"scope not known by client": {
+			url:   "ar?response_type=code&client_id=1&redirect_uri=https%3A%2F%2Ftest.com%2Fpath&scope=bad",
+			error: ErrInvalidScope},
 
 		//Success
 		"minimal path": {
@@ -92,6 +95,7 @@ func TestAuthorizeRequestDecoder(t *testing.T) {
 
 	client := &mocks.Client{}
 	client.On("ClientId").Return(ClientId("1"))
+	client.On("Scope").Return(Scope{"test", "abc"})
 
 	storage := &mocks.ClientStorage{}
 	storage.On("GetClient", Anything, "1").Return(client, nil)

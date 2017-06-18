@@ -54,6 +54,11 @@ func DecodeAccessTokenRequest(storage ClientStorage) RequestDecoder {
 			return nil, ErrInvalidRedirectUri
 		}
 
+		// validate redirect uri is registered for this client
+		if !hasRedirectUri(client.RedirectUri(), redirectUri.String()) {
+			return nil, ErrInvalidRedirectUri
+		}
+
 		code := req.PostFormValue("code")
 		if len(code) == 0 {
 			return nil, ErrInvalidCode

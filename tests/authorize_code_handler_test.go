@@ -34,13 +34,6 @@ func TestAuthorizeCodeHandler(t *testing.T) {
 			clientResponseTypes: ResponseTypes{TOKEN},
 			error:               ErrUnsupportedResponseType,
 		},
-		"wrong redirect url not registerd by client": {
-			responseTypes:       ResponseTypes{CODE},
-			clientResponseTypes: ResponseTypes{CODE},
-			redirectUri:         "http://test.com/foo",
-			clientRedirectUri:   []string{"http://test.com/bar", "http://test.org/baz"},
-			error:               ErrInvalidRedirectUri,
-		},
 
 		"more granted scopes than client permits": {
 			responseTypes:       ResponseTypes{CODE},
