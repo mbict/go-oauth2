@@ -13,6 +13,7 @@ import (
 func TestAuthorizeImplicitHandler(t *testing.T) {
 	var testcases = map[string]struct {
 		responseTypes       ResponseTypes
+		omitClient          bool
 		clientResponseTypes ResponseTypes
 		clientRedirectUri   []string
 		redirectUri         string
@@ -33,7 +34,21 @@ func TestAuthorizeImplicitHandler(t *testing.T) {
 		"unsupported response type by client": {
 			responseTypes:       ResponseTypes{TOKEN},
 			clientResponseTypes: ResponseTypes{CODE},
+			redirectUri:         "http://test.com/foo",
+			clientRedirectUri:   []string{"http://test.com/foo"},
 			error:               ErrUnsupportedResponseType,
+		},
+		"no client id provided": {
+			responseTypes:       ResponseTypes{TOKEN},
+			clientResponseTypes: ResponseTypes{TOKEN},
+			omitClient:          true,
+			error:               ErrUnauthorizedClient,
+		},
+		"omitted redirect url": {
+			responseTypes:       ResponseTypes{TOKEN},
+			clientResponseTypes: ResponseTypes{TOKEN},
+			clientRedirectUri:   []string{"http://test.com/foo"},
+			error:               ErrInvalidRedirectUri,
 		},
 		"wrong redirect url not registerd by client": {
 			responseTypes:       ResponseTypes{TOKEN},
@@ -56,6 +71,8 @@ func TestAuthorizeImplicitHandler(t *testing.T) {
 		"failure generating token": {
 			responseTypes:       ResponseTypes{TOKEN},
 			clientResponseTypes: ResponseTypes{TOKEN},
+			redirectUri:         "http://test.com/foo",
+			clientRedirectUri:   []string{"http://test.com/foo"},
 			errTokenStrat:       ErrServerError,
 			error:               ErrServerError,
 		},
@@ -63,17 +80,13 @@ func TestAuthorizeImplicitHandler(t *testing.T) {
 		"failure storing token session": {
 			responseTypes:       ResponseTypes{TOKEN},
 			clientResponseTypes: ResponseTypes{TOKEN},
+			redirectUri:         "http://test.com/foo",
+			clientRedirectUri:   []string{"http://test.com/foo"},
 			errTokenStore:       ErrServerError,
 			error:               ErrServerError,
 		},
 
 		//Success
-		"minimal": {
-			responseTypes:       ResponseTypes{TOKEN},
-			clientResponseTypes: ResponseTypes{TOKEN},
-			handled:             true,
-		},
-
 		"with redirect": {
 			responseTypes:       ResponseTypes{TOKEN},
 			clientResponseTypes: ResponseTypes{TOKEN},
@@ -85,6 +98,8 @@ func TestAuthorizeImplicitHandler(t *testing.T) {
 		"with grantedScopes": {
 			responseTypes:       ResponseTypes{TOKEN},
 			clientResponseTypes: ResponseTypes{TOKEN},
+			redirectUri:         "http://test.com/foo",
+			clientRedirectUri:   []string{"http://test.com/foo"},
 			grantedScopes:       Scope{"foo"},
 			clientScope:         Scope{"foo"},
 			handled:             true,
@@ -93,6 +108,8 @@ func TestAuthorizeImplicitHandler(t *testing.T) {
 		"with state": {
 			responseTypes:       ResponseTypes{TOKEN},
 			clientResponseTypes: ResponseTypes{TOKEN},
+			redirectUri:         "http://test.com/foo",
+			clientRedirectUri:   []string{"http://test.com/foo"},
 			state:               "12345",
 			handled:             true,
 		},
@@ -114,11 +131,15 @@ func TestAuthorizeImplicitHandler(t *testing.T) {
 		session.On("ExpiresAt").Return(time.Now().Add(time.Hour))
 		session.On("GrantedScopes").Return(tc.grantedScopes)
 
-		client := &mocks.Client{}
-		client.On("ClientId").Return(ClientId("1"))
-		client.On("ResponseTypes").Return(tc.clientResponseTypes)
-		client.On("RedirectUri").Return(tc.clientRedirectUri)
-		client.On("Scope").Return(tc.clientScope)
+		var client Client
+		if !tc.omitClient {
+			mc := &mocks.Client{}
+			mc.On("ClientId").Return(ClientId("1"))
+			mc.On("ResponseTypes").Return(tc.clientResponseTypes)
+			mc.On("RedirectUri").Return(tc.clientRedirectUri)
+			mc.On("Scope").Return(tc.clientScope)
+			client = mc
+		}
 
 		req := generateAuthorizeRequest(tc.responseTypes, tc.redirectUri, tc.state, session, client)
 		resp := NewAuthorizeResponse(tc.redirectUri)

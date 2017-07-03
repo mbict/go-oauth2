@@ -21,30 +21,9 @@ func TestAuthorizeRequestDecoder(t *testing.T) {
 		state        string
 	}{
 		//Failures
-		"no response type": {
-			url:   "ar",
-			error: ErrInvalidRequest},
-		"no client id": {
-			url:   "ar?response_type=code",
-			error: ErrInvalidRequest},
 		"failing client store": {
 			url:   "ar?response_type=code&client_id=3",
 			error: ErrExternalError},
-		"invalid client id": {
-			url:   "ar?response_type=code&client_id=2",
-			error: ErrUnauthorizedClient},
-		"missing redirect url": {
-			url:   "ar?response_type=code&client_id=1",
-			error: ErrInvalidRequest},
-		"absolute redirect url": {
-			url:   "ar?response_type=code&client_id=1&redirect_uri=blup",
-			error: ErrInvalidRedirectUri},
-		"malformed redirect url": {
-			url:   "ar?response_type=code&client_id=1&redirect_uri=x%5C%24%3As%2F%3As%23",
-			error: ErrInvalidRedirectUri},
-		"scope not known by client": {
-			url:   "ar?response_type=code&client_id=1&redirect_uri=https%3A%2F%2Ftest.com%2Fpath&scope=bad",
-			error: ErrInvalidScope},
 
 		//Success
 		"minimal path": {

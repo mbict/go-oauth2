@@ -7,6 +7,7 @@ import (
 	. "github.com/stretchr/testify/mock"
 	"net/url"
 	"testing"
+	"time"
 )
 
 func TestAuthorizeCodeHandler(t *testing.T) {
@@ -14,6 +15,7 @@ func TestAuthorizeCodeHandler(t *testing.T) {
 		responseTypes       ResponseTypes
 		clientResponseTypes ResponseTypes
 		clientRedirectUri   []string
+		omitClient          bool
 		redirectUri         string
 		grantedScopes       Scope
 		clientScope         Scope
@@ -32,7 +34,31 @@ func TestAuthorizeCodeHandler(t *testing.T) {
 		"unsupported response type by client": {
 			responseTypes:       ResponseTypes{CODE},
 			clientResponseTypes: ResponseTypes{TOKEN},
+			redirectUri:         "http://test.com/foo",
+			clientRedirectUri:   []string{"http://test.com/foo"},
 			error:               ErrUnsupportedResponseType,
+		},
+
+		"no client id provided": {
+			responseTypes:       ResponseTypes{CODE},
+			clientResponseTypes: ResponseTypes{TOKEN},
+			omitClient:          true,
+			error:               ErrUnauthorizedClient,
+		},
+
+		"omitted redirect url": {
+			responseTypes:       ResponseTypes{CODE},
+			clientResponseTypes: ResponseTypes{TOKEN},
+			clientRedirectUri:   []string{"http://test.com/foo"},
+			error:               ErrInvalidRedirectUri,
+		},
+
+		"wrong redirect url": {
+			responseTypes:       ResponseTypes{CODE},
+			clientResponseTypes: ResponseTypes{TOKEN},
+			redirectUri:         "http://bar.com/foo",
+			clientRedirectUri:   []string{"http://test.com/foo"},
+			error:               ErrInvalidRedirectUri,
 		},
 
 		"more granted scopes than client permits": {
@@ -48,6 +74,8 @@ func TestAuthorizeCodeHandler(t *testing.T) {
 		"failure generating token": {
 			responseTypes:       ResponseTypes{CODE},
 			clientResponseTypes: ResponseTypes{CODE},
+			redirectUri:         "http://test.com/foo",
+			clientRedirectUri:   []string{"http://test.com/foo"},
 			errTokenStrat:       ErrServerError,
 			error:               ErrServerError,
 		},
@@ -55,17 +83,13 @@ func TestAuthorizeCodeHandler(t *testing.T) {
 		"failure storing token session": {
 			responseTypes:       ResponseTypes{CODE},
 			clientResponseTypes: ResponseTypes{CODE},
+			redirectUri:         "http://test.com/foo",
+			clientRedirectUri:   []string{"http://test.com/foo"},
 			errTokenStore:       ErrServerError,
 			error:               ErrServerError,
 		},
 
 		//Success
-		"minimal": {
-			responseTypes:       ResponseTypes{CODE},
-			clientResponseTypes: ResponseTypes{CODE},
-			handled:             true,
-		},
-
 		"with redirect": {
 			responseTypes:       ResponseTypes{CODE},
 			clientResponseTypes: ResponseTypes{CODE},
@@ -77,6 +101,8 @@ func TestAuthorizeCodeHandler(t *testing.T) {
 		"with grantedScopes": {
 			responseTypes:       ResponseTypes{CODE},
 			clientResponseTypes: ResponseTypes{CODE},
+			redirectUri:         "http://test.com/foo",
+			clientRedirectUri:   []string{"http://test.com/foo"},
 			grantedScopes:       Scope{"foo"},
 			clientScope:         Scope{"foo"},
 			handled:             true,
@@ -85,6 +111,8 @@ func TestAuthorizeCodeHandler(t *testing.T) {
 		"with state": {
 			responseTypes:       ResponseTypes{CODE},
 			clientResponseTypes: ResponseTypes{CODE},
+			redirectUri:         "http://test.com/foo",
+			clientRedirectUri:   []string{"http://test.com/foo"},
 			state:               "12345",
 			handled:             true,
 		},
@@ -105,12 +133,15 @@ func TestAuthorizeCodeHandler(t *testing.T) {
 		session := &mocks.Session{}
 		session.On("GrantedScopes").Return(tc.grantedScopes)
 
-		client := &mocks.Client{}
-		client.On("ClientId").Return(ClientId("1"))
-		client.On("ResponseTypes").Return(tc.clientResponseTypes)
-		client.On("RedirectUri").Return(tc.clientRedirectUri)
-		client.On("Scope").Return(tc.clientScope)
-
+		var client Client
+		if !tc.omitClient {
+			mc := &mocks.Client{}
+			mc.On("ClientId").Return(ClientId("1"))
+			mc.On("ResponseTypes").Return(tc.clientResponseTypes)
+			mc.On("RedirectUri").Return(tc.clientRedirectUri)
+			mc.On("Scope").Return(tc.clientScope)
+			client = mc
+		}
 		req := generateAuthorizeRequest(tc.responseTypes, tc.redirectUri, tc.state, session, client)
 		resp := NewAuthorizeResponse(tc.redirectUri)
 
@@ -134,13 +165,5 @@ func generateAuthorizeRequest(responseTypes ResponseTypes, redirectUrl string, s
 	if redirectUrl != "" {
 		rurl, _ = url.Parse(redirectUrl)
 	}
-
-	req := &mocks.AuthorizeRequest{}
-	req.On("ResponseTypes").Return(responseTypes)
-	req.On("RedirectUri").Return(rurl)
-	req.On("State").Return(state)
-	req.On("Session").Return(session)
-	req.On("Client").Return(client)
-
-	return req
+	return NewAuthorizeRequest(time.Now(), client, session, nil, nil, responseTypes, rurl, state)
 }
