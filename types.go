@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-type ClientId string
+type ClientId = string
 type Client interface {
 	ClientId() ClientId
 	//ClientSecret() string

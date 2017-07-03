@@ -10,14 +10,14 @@ type Client struct {
 }
 
 // ClientId provides a mock function with given fields:
-func (_m *Client) ClientId() oauth2.ClientId {
+func (_m *Client) ClientId() string {
 	ret := _m.Called()
 
-	var r0 oauth2.ClientId
-	if rf, ok := ret.Get(0).(func() oauth2.ClientId); ok {
+	var r0 string
+	if rf, ok := ret.Get(0).(func() string); ok {
 		r0 = rf()
 	} else {
-		r0 = ret.Get(0).(oauth2.ClientId)
+		r0 = ret.Get(0).(string)
 	}
 
 	return r0

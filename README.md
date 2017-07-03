@@ -24,3 +24,15 @@ I created this to learn how Oauth2 is implemented.
 
 
 Generating tokens is responsible for setting the session expire times
+
+# Regenerate mocks
+Install mockery and testify first
+```
+go get github.com/stretchr/testify/mock
+go get github.com/vektra/mockery/.../
+```
+
+than just run
+```
+./generate-mocks.sh
+```
