@@ -1,7 +1,6 @@
 package oauth2
 
 import (
-	"github.com/satori/go.uuid"
 	"net/url"
 	"time"
 )
@@ -84,9 +83,9 @@ func (s *session) SetRedirectUri(url string) {
 	s.requestValues.Set("redirect_uri", url)
 }
 
-func NewSession(userId string, clientId ClientId) Session {
+func NewSession(sessionId SessionId, userId string, clientId ClientId) Session {
 	return &session{
-		id:       SessionId(uuid.NewV4().String()),
+		id:       sessionId,
 		userId:   userId,
 		clientId: clientId,
 	}

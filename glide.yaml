@@ -1,6 +1,5 @@
 package: github.com/mbict/go-oauth2
 import:
-- package: github.com/satori/go.uuid
 - package: github.com/pkg/errors
 testImport:
 - package: github.com/vektra/mockery
